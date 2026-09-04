@@ -130,7 +130,6 @@ def verificar_um(pasta: Path) -> List[Dict]:
                    if isinstance(v, dict) and v.get('id')}
         no_html = set(re_html.findall(texto_html))
         no_css = set(re_css.findall(texto_estilo))
-        chamada = re.search(rf'{metodo}\s*\((.*?)\)', texto_js, re.S)
         declara_js = bool(re.search(rf'\b{metodo}\b', texto_js))
 
         for ident in sorted(no_yaml - no_css):
@@ -152,7 +151,6 @@ def verificar_um(pasta: Path) -> List[Dict]:
                 'CMP-ESPELHO', slug, f'{rotulo} sem comportamento',
                 f'{slug}.yaml declara {len(no_yaml)} {rotulo}(ões) e '
                 f'{slug}.js não expõe {metodo}()'))
-        del chamada
 
     return achados
 

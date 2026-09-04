@@ -12,7 +12,17 @@ A divisão de trabalho é explícita em cada achado, no campo `decidido_por`:
     skill   o código marca o candidato e a decisão exige leitura
 
 Fingir determinismo onde não há é pior que não ter a checagem: produz achado
-falso com cara de fato."""
+falso com cara de fato.
+
+Limite lexical, declarado de propósito: `_ACOES`, `_VAGOS` e `_MENSURAVEL` são
+listas fixas em português. Requisito escrito em outro idioma, ou com verbo fora
+da lista, não é reconhecido como ação — e a comparação cai no caminho sem filtro
+de ação, que erra para o lado do falso positivo. Isso é escolha, não descuido: o
+filtro de ação só pesa em par parecido — par de texto idêntico é duplicata com ou
+sem ele —, e todo par parecido sai com `decidido_por: skill`, ou seja, vai para
+leitura humana em vez de virar conclusão. O limite lexical produz candidato a
+mais, nunca conclusão errada. Ampliar a lista é barato e não muda contrato;
+trocá-la por stemmer traria dependência, que o pacote não tem."""
 from __future__ import annotations
 import re
 import unicodedata
