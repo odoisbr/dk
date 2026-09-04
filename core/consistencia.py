@@ -172,11 +172,20 @@ def analisar(regras: List[dict], requisitos: List[dict]) -> List[Dict]:
             a, b = requisitos[i], requisitos[j]
             s = _similaridade(_texto(a), _texto(b))
             if s >= 0.6:
+                # Texto idêntico o código conclui. Parecido, não: num projeto
+                # real, "credencial de Aposentado" e "credencial de Estagiário"
+                # deram 82% — são variantes paramétricas da mesma regra, e
+                # decidir se viram um requisito só exige ler o domínio.
+                identico = s >= 0.999
                 achados.append(_achado(
                     'DUPLICATA', [a['id'], b['id']],
                     f"similaridade {s:.0%} entre {a['id']} e {b['id']}: "
-                    f"{_texto(a)[:45]!r} × {_texto(b)[:45]!r}",
-                    'RESOLVE-ANTES-DO-DESIGN', 'codigo'))
+                    f"{_texto(a)[:45]!r} × {_texto(b)[:45]!r}"
+                    + ('' if identico else
+                       ' — parecidos, não idênticos: pode ser variante '
+                       'paramétrica, e quem julga é a skill'),
+                    'RESOLVE-ANTES-DO-DESIGN',
+                    'codigo' if identico else 'skill'))
 
     # Tipo 5 — NF-SEM-CRITÉRIO
     for q in requisitos:
