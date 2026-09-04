@@ -2,15 +2,95 @@
 """CLI do dk. Simula por padrão; `--apply` é explícito."""
 from __future__ import annotations
 import argparse
+import datetime
 import json
+import subprocess
 import sys
 from pathlib import Path
+from shutil import which
 
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
-from core import (conformidade, espinha, leitura, mapa, ops,  # noqa: E402
-                  registry, scan)
+from core import (conformidade, documento, entregaveis,  # noqa: E402
+                  espinha, leitura, mapa, ops, padrao, registry, scan)
+
+
+def _hoje() -> str:
+    return datetime.date.today().strftime('%d/%m/%Y')
+
+
+def _hoje_iso() -> str:
+    return datetime.date.today().isoformat()
+
+
+def _renderizador_pdf() -> str:
+    """Devolve o executável de PDF disponível, ou string vazia.
+
+    Ausência não é erro: o HTML é o entregável canônico. O PDF é conveniência, e
+    quando não dá para gerar, o dk diz — não falha em silêncio nem finge."""
+    for candidato in ('chromium', 'chromium-browser', 'google-chrome',
+                      'google-chrome-stable'):
+        caminho = which(candidato)
+        if caminho:
+            return caminho
+    macos = Path('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
+    return str(macos) if macos.exists() else ''
+
+
+def cmd_entregar(args) -> int:
+    projeto = Path(args.projeto).resolve()
+    corpo_md = Path(args.corpo).read_text(encoding='utf-8')
+
+    achados = entregaveis.validar(args.tipo, corpo_md)
+    for a in achados:
+        print(f"{a['id']}: {a['titulo']} — {a['evidencia']}")
+    bloqueios = [a for a in achados if a['impacto'] == 'alto']
+    if bloqueios:
+        print(f'{len(bloqueios)} bloqueio(s) — o entregável não foi gerado.')
+        return 1
+
+    contrato = entregaveis.CONTRATOS[args.tipo]
+    meta = {'Projeto': projeto.name, 'Gerado em': _hoje()}
+    html = documento.montar(contrato['titulo'], projeto.name, corpo_md, meta)
+
+    pasta = padrao.destino(args.tipo)
+    alvo = projeto / pasta / f'{args.tipo}-{_hoje_iso()}.html'
+
+    reg = leitura.Registro()
+    fontes = []
+    if alvo.exists():
+        reg.ler(alvo)
+        fontes.append(alvo)
+    op = ops.Operacao(projeto, escopo=[pasta], registro=reg, fontes=fontes)
+    plano = op.planejar(alvo, html)
+    print(f"{plano['acao']}: {plano['caminho']}")
+
+    if not args.apply:
+        print('simulação — nada foi gravado. Use --apply para aplicar.')
+        return 0
+
+    op.aplicar()
+    print(f'gravado: {alvo.relative_to(projeto)}')
+
+    if args.pdf:
+        renderizador = _renderizador_pdf()
+        if not renderizador:
+            print('PDF não gerado: nenhum renderizador encontrado. '
+                  'O HTML é o entregável canônico e está completo.')
+        else:
+            destino_pdf = alvo.with_suffix('.pdf')
+            r = subprocess.run(
+                [renderizador, '--headless', '--disable-gpu',
+                 f'--print-to-pdf={destino_pdf}', '--no-pdf-header-footer',
+                 alvo.as_uri()],
+                capture_output=True, text=True)
+            if destino_pdf.exists():
+                print(f'gravado: {destino_pdf.relative_to(projeto)}')
+            else:
+                print(f'PDF não gerado: o renderizador falhou ({r.returncode}). '
+                      'O HTML está completo.')
+    return 0
 
 
 def _llms_do_projeto(m: dict, conf: dict) -> str:
@@ -169,6 +249,15 @@ def main() -> int:
     aud.add_argument('--apply', action='store_true',
                      help='grava .dk/mapa.json e llms.txt; sem a flag, simula')
     aud.set_defaults(func=cmd_audit)
+
+    ent = sub.add_parser('entregar', help='gera entregável formatado')
+    ent.add_argument('--projeto', required=True)
+    ent.add_argument('--tipo', required=True, choices=sorted(entregaveis.CONTRATOS))
+    ent.add_argument('--corpo', required=True)
+    ent.add_argument('--pdf', action='store_true',
+                     help='tenta gerar PDF; ausência de renderizador é anunciada')
+    ent.add_argument('--apply', action='store_true')
+    ent.set_defaults(func=cmd_entregar)
 
     args = p.parse_args()
     return args.func(args)
