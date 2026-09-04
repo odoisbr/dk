@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Aponta o Git deste clone para .githooks. Idempotente.
+set -euo pipefail
+RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+git -C "$RAIZ" config core.hooksPath .githooks
+chmod +x "$RAIZ/.githooks/pre-push"
+echo "core.hooksPath = $(git -C "$RAIZ" config core.hooksPath)"

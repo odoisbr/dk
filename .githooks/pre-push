@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Verificação antes do push. O pacote não tem runner externo: esta é a validação.
+#
+# Ativação: bin/dk-instalar-hooks  (e o teste validate_hooks_ativos.py cobra)
+# Pular num push específico: git push --no-verify
+set -euo pipefail
+
+RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo "Verificando o pacote antes do push..."
+if ! python3 "$RAIZ/verificar.py"; then
+  echo
+  echo "Push abortado: a verificação falhou. Corrija, ou use --no-verify se for deliberado."
+  exit 1
+fi
