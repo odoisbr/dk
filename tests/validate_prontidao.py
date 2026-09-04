@@ -88,6 +88,24 @@ with tempfile.TemporaryDirectory() as d:
         errors.append(f"requisito no entregável não deveria bloquear: "
                       f"{ent['evidencia']}")
 
+
+# projeto vazio: zero e zero "batem", mas isso é verdade vacuosa
+with tempfile.TemporaryDirectory() as d:
+    raiz = Path(d)
+    for pasta in padrao.PASTAS:
+        (raiz / pasta).mkdir(parents=True, exist_ok=True)
+    registry.gravar(raiz, 'regras', [])
+    registry.gravar(raiz, 'requisitos', [])
+
+    r = prontidao.avaliar(raiz)
+    cob = [i for i in r['itens'] if i['nome'] == 'cobertura'][0]
+    if cob['estado'] != 'bloqueio':
+        errors.append('projeto vazio: a cobertura não pode passar por zero×zero')
+    if 'vazio' not in cob['evidencia']:
+        errors.append(f"a evidência não diz que está vazio: {cob['evidencia']}")
+    if r['pronto']:
+        errors.append('projeto sem nada registrado não pode estar pronto')
+
 for e in errors:
     print(e)
 sys.exit(1 if errors else 0)

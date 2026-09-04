@@ -26,7 +26,17 @@ def avaliar(raiz: Path) -> Dict:
     cob = cobertura.matriz(raiz)
     orfas = cob['regras_sem_requisito']
     sem_regra = cob['requisitos_sem_regra']
-    if orfas or sem_regra:
+    vazio = not cob['totais']['regras'] and not cob['totais']['requisitos']
+    if vazio:
+        # Zero regras e zero requisitos "batem" — e é verdade vacuosa. Um projeto
+        # sem nada registrado não está pronto para handoff; está por começar.
+        # O gate precisa distinguir fechado de vazio, ou aprova o caso pior.
+        itens.append(_item(
+            'cobertura', 'bloqueio',
+            'nenhuma regra e nenhum requisito registrados — projeto vazio não '
+            'está pronto, está por começar',
+            'levantar', 'dk levantar --projeto <raiz> --insumo <arquivo>'))
+    elif orfas or sem_regra:
         partes = []
         if orfas:
             partes.append('regra sem requisito: ' + ', '.join(orfas))
