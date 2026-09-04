@@ -22,6 +22,8 @@ ITENS = [
     ('contrato de resposta', 'tests/validate_contrato_de_resposta.py'),
     ('llms.txt e llms-full.txt', 'tests/validate_contrato_llm.py'),
     ('governança recuperada', 'tests/validate_governanca.py'),
+    ('dogfooding: o dk audita o próprio dk', 'tests/validate_dogfooding.py'),
+    ('varredura sem leitura e sem segredo', 'tests/validate_scan.py'),
 ]
 
 errors = []

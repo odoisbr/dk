@@ -60,7 +60,19 @@ def cmd_audit(args) -> int:
         return 0
 
     texto_llms = _llms_do_projeto(m, conf)
-    op = ops.Operacao(projeto, escopo=['.dk', 'llms.txt'])
+
+    # Um llms.txt escrito à mão não é sobrescrito às cegas: ele vira fonte
+    # declarada, e o envelope recusa a gravação se ninguém o leu. Vale para o
+    # próprio dk, que tem o seu.
+    reg = leitura.Registro()
+    fontes = []
+    alvo_llms = projeto / 'llms.txt'
+    if alvo_llms.exists():
+        reg.ler(alvo_llms)
+        fontes.append(alvo_llms)
+
+    op = ops.Operacao(projeto, escopo=['.dk', 'llms.txt'],
+                      registro=reg, fontes=fontes)
     planos = [
         op.planejar(projeto / '.dk' / 'mapa.json',
                     json.dumps(m, ensure_ascii=False, indent=2) + '\n'),

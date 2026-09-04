@@ -8,7 +8,7 @@ from pathlib import Path
 
 REGRA_TOKENS = '~4 bytes por token para texto; binário não é lido, custa 0'
 
-_LINGUAGEM = {
+LINGUAGEM_POR_EXT = {
     '.py': 'python', '.js': 'javascript', '.mjs': 'javascript',
     '.ts': 'typescript', '.tsx': 'typescript', '.jsx': 'javascript',
     '.java': 'java', '.go': 'go', '.rb': 'ruby', '.php': 'php',
@@ -43,7 +43,7 @@ def classificar(entrada: dict) -> dict:
 
     binario = ext in _BINARIA
     entrada['binario'] = binario
-    entrada['linguagem'] = _LINGUAGEM.get(ext, '')
+    entrada['linguagem'] = LINGUAGEM_POR_EXT.get(ext, '')
 
     if binario:
         tipo, categoria = 'asset', 'binario'

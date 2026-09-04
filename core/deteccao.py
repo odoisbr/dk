@@ -10,6 +10,8 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
+from core import classify
+
 _LOCKS = {
     'pnpm-lock.yaml': 'pnpm', 'yarn.lock': 'yarn',
     'package-lock.json': 'npm', 'bun.lockb': 'bun',
@@ -94,6 +96,26 @@ def detectar(raiz: Path, entradas: List[dict]) -> Dict:
         if manifesto in caminhos:
             stack.append(linguagem)
             evidencias.append(f'{manifesto}: projeto {linguagem}')
+
+    # Projeto sem manifesto ainda é projeto. Quando a linguagem não foi declarada
+    # por manifesto, ela é inferida pela massa de arquivos — e a evidência cita um
+    # arquivo real mais a contagem, para a conclusão continuar conferível.
+    _MIN_ARQUIVOS = 3
+    porta_linguagem = {}
+    for e in entradas:
+        # `entradas` pode vir crua da varredura ou já classificada; a detecção não
+        # depende dessa ordem — se o rótulo não veio, ela o deriva da extensão.
+        lang = e.get('linguagem') or classify.LINGUAGEM_POR_EXT.get(
+            e.get('ext', ''), '')
+        if lang:
+            porta_linguagem.setdefault(lang, []).append(e['caminho'])
+    for lang, arquivos in sorted(porta_linguagem.items()):
+        if lang in stack or len(arquivos) < _MIN_ARQUIVOS:
+            continue
+        stack.append(lang)
+        evidencias.append(
+            f'{sorted(arquivos)[0]}: {len(arquivos)} arquivos {lang} '
+            'no repositório, sem manifesto declarado')
 
     if '.claude-plugin/plugin.json' in caminhos:
         tipo = 'plugin'
