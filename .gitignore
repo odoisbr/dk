@@ -1,3 +1,15 @@
 __pycache__/
 *.pyc
 .dk/
+
+# sensível — política do DK
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+.netrc
+.npmrc
