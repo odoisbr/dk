@@ -1,0 +1,43 @@
+{
+  "fonte": "Lean Inception, Paulo Caroli — a agenda das onze atividades, na ordem em que a oficina as conduz.",
+  "atividades": [
+    {"n": 1, "tipo": "visao", "nome": "Visão do produto",
+     "pergunta": "para quem é, o que resolve e o que o diferencia",
+     "exige": ["conteudo"]},
+    {"n": 2, "tipo": "limites", "nome": "É, não é, faz, não faz",
+     "pergunta": "que tipo de coisa isto é, e o que fica de fora",
+     "exige": ["e", "nao_e", "faz", "nao_faz"]},
+    {"n": 3, "tipo": "objetivo", "nome": "Objetivos do produto",
+     "pergunta": "o que o produto precisa alcançar",
+     "exige": ["conteudo"]},
+    {"n": 4, "tipo": "persona", "nome": "Personas",
+     "pergunta": "quem usa, com que necessidade e em que contexto",
+     "exige": ["conteudo"]},
+    {"n": 5, "tipo": "jornada", "nome": "Jornadas do usuário",
+     "pergunta": "que caminho a persona percorre",
+     "exige": ["conteudo"]},
+    {"n": 6, "tipo": "feature", "nome": "Brainstorm de funcionalidades",
+     "pergunta": "o que o produto precisa ter para a jornada fechar",
+     "exige": ["conteudo"]},
+    {"n": 7, "tipo": "revisao-tecnica", "nome": "Revisão técnica",
+     "pergunta": "o que custa construir cada funcionalidade",
+     "exige": ["conteudo", "veredito"]},
+    {"n": 8, "tipo": "revisao-negocio", "nome": "Revisão de negócio",
+     "pergunta": "quanto vale cada funcionalidade",
+     "exige": ["conteudo", "veredito"]},
+    {"n": 9, "tipo": "revisao-ux", "nome": "Revisão de UX",
+     "pergunta": "quanto esforço a funcionalidade cobra de quem usa",
+     "exige": ["conteudo", "veredito"]},
+    {"n": 10, "tipo": "sequenciador", "nome": "Sequenciador de ondas",
+     "pergunta": "que jornada a onda 1 fecha sozinha",
+     "exige": ["conteudo", "onda"]},
+    {"n": 11, "tipo": "canvas-mvp", "nome": "Canvas MVP",
+     "pergunta": "o compromisso mínimo que a equipe assina",
+     "exige": ["proposta", "segmento", "resultado", "metrica", "custo", "risco"]}
+  ],
+  "complementos": [
+    {"tipo": "stakeholder", "nome": "Stakeholders",
+     "pergunta": "quem decide, quem valida e quem é afetado",
+     "exige": ["papel"]}
+  ]
+}

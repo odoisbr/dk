@@ -14,7 +14,8 @@ sys.path.insert(0, str(RAIZ))
 
 from core import (changeset, cobertura, conformidade,  # noqa: E402
                   consistencia, deck, documento, entregaveis, espinha, ids,
-                  io, lacunas, leitura, mapa, ops, padrao, prontidao, prototipo,
+                  inception, io, lacunas, leitura, mapa, ops, padrao, prontidao,
+                  prototipo,
                   rastreabilidade, registry, scan)
 from core import git as vcs  # noqa: E402
 
@@ -132,8 +133,29 @@ def cmd_prototipar(args) -> int:
     return 0
 
 
+def _entender_inception(args, projeto: Path) -> int:
+    r = inception.avaliar(projeto)
+    if args.json:
+        print(json.dumps(r, ensure_ascii=False, indent=2))
+        return 0
+    print(f"inception: {r['cobertas']}/{r['total']} atividades "
+          f"({r['percentual']}%) — {r['estado']}")
+    marcas = {'coberta': '[x]', 'incompleta': '[!]', 'ausente': '[ ]'}
+    for a in r['atividades']:
+        n = f"{a['n']:>2}" if a['n'] else ' —'
+        print(f"{marcas[a['estado']]} {n} {a['nome']}: {a['evidencia']}")
+    for a in r['achados']:
+        quem = ('código decidiu' if a['decidido_por'] == 'codigo'
+                else 'candidato — a skill decide')
+        print(f"\n{a['id']} [{a['impacto']}] ({quem}): {a['titulo']}")
+        print(f"  {a['evidencia']}")
+    return 0
+
+
 def cmd_entender(args) -> int:
     projeto = Path(args.projeto).resolve()
+    if args.inception:
+        return _entender_inception(args, projeto)
     cob = cobertura.matriz(projeto)
     inc = consistencia.analisar(registry.carregar(projeto, 'regras'),
                                 registry.carregar(projeto, 'requisitos'))
@@ -664,6 +686,8 @@ def main() -> int:
     und = sub.add_parser('entender', help='cobertura, consistência e lacunas')
     und.add_argument('--projeto', required=True)
     und.add_argument('--json', action='store_true')
+    und.add_argument('--inception', action='store_true',
+                     help='cobra a agenda da Lean Inception contra o registro')
     und.set_defaults(func=cmd_entender)
 
     pro = sub.add_parser('prototipar', help='changeset e padrão do protótipo')

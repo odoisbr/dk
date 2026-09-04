@@ -40,6 +40,7 @@ ARQUIVOS = {
     'escopo': ('escopo.json',),
     'riscos': ('riscos.json',),
     'aceitacao': ('aceitacao.json',),
+    'inception': ('lean-inception.json',),
 }
 
 

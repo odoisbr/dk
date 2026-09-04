@@ -22,10 +22,12 @@ antes de a próxima etapa começar.
 | `dk-entender-lacunas` | a pergunta é o que ainda falta levantar |
 | `dk-entender-consistencia` | a pergunta é se os requisitos fecham entre si |
 | `dk-entender-csd` | é preciso separar o que se sabe do que se presume |
+| `dk-entender-inception` | o trabalho é a inception, o MVP ou o escopo da onda 1 |
 
 ## Procedimento
 
 1. Rode `bin/dk entender --projeto <raiz>` e leia o relatório.
 2. Escolha a skill pela natureza do que apareceu: falta de informação vai para lacunas;
-   informação que não fecha vai para consistência; informação sem fonte vai para CSD.
+   informação que não fecha vai para consistência; informação sem fonte vai para CSD;
+   demanda ainda sem recorte de MVP vai para inception.
 3. Feche com uma frase: quantas lacunas críticas e quantos bloqueios seguem em aberto.
