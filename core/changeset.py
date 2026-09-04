@@ -13,8 +13,6 @@ from typing import Dict, List
 
 from core import ops
 
-CAMPOS = ('id', 'title', 'status', 'source', 'affected', 'validation', 'result')
-
 
 def abrir(ident: str, titulo: str, origem: str, afetados: List[str]) -> Dict:
     return {
@@ -64,7 +62,12 @@ def operacao(raiz: Path, cs: Dict, registro=None) -> ops.Operacao:
 
 
 def fechar(cs: Dict, resultado: str, escritos: List[Path]) -> Dict:
+    # `dict()` copia raso: as listas continuariam compartilhadas com o changeset
+    # aberto, e mexer no fechado mexeria no escopo do envelope de escrita. Como
+    # `affected` É o escopo, essa partilha é a única que não pode existir aqui.
     fechado = dict(cs)
+    fechado['affected'] = list(cs.get('affected') or [])
+    fechado['validation'] = list(cs.get('validation') or [])
     fechado['status'] = 'fechado'
     fechado['result'] = resultado
     fechado['escritos'] = [str(p) for p in escritos]

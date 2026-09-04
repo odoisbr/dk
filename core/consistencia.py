@@ -56,7 +56,16 @@ def _normaliza(token: str) -> str:
     Duplicata real aparece assim: "revogar o convênio" e "revogar convênios".
     Sem esta normalização a comparação erra justamente o caso que ela existe
     para pegar. A dobra não precisa ser linguisticamente correta — precisa ser
-    a mesma dos dois lados."""
+    a mesma dos dois lados.
+
+    E não é: "status", "ônibus" e sigla terminada em s perdem o s sem serem
+    plural. Isso vale para toda comparação de similaridade, não só para os
+    achados marcados como candidato. A escolha se sustenta porque o erro é
+    simétrico — os dois lados sofrem a mesma dobra, então palavra não-plural só
+    aproxima de outra palavra que também termina em s. O efeito é candidato a
+    mais em `DUPLICATA`, que sai com `decidido_por: skill` e vai para leitura
+    humana. Regra de plural correta em português exigiria stemmer, e o pacote
+    não tem dependência."""
     dobrado = unicodedata.normalize('NFKD', token)
     dobrado = ''.join(c for c in dobrado if not unicodedata.combining(c))
     if len(dobrado) > 4 and dobrado.endswith('s'):

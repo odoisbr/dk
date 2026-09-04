@@ -41,7 +41,6 @@ _DATA_VARIANT = re.compile(r'data-variant\s*=\s*["\']([\w-]+)["\']')
 _DATA_STATE = re.compile(r'data-state\s*=\s*["\']([\w-]+)["\']')
 _SEL_VARIANT = re.compile(r'\[data-variant\s*=\s*["\']([\w-]+)["\']\]')
 _SEL_STATE = re.compile(r'\[data-state\s*=\s*["\']([\w-]+)["\']\]')
-_JS_VARIANT = re.compile(r'["\']([\w-]+)["\']')
 
 
 def _achado(ident, componente, titulo, evidencia, impacto='medio') -> Dict:
