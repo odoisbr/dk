@@ -1,0 +1,28 @@
+# dk
+
+Processo de design ponta a ponta: da reunião com o cliente ao handoff para
+desenvolvimento. Plugin de Claude Code, autônomo, sem dependências obrigatórias.
+
+## O que é
+
+O `dk` conduz seis etapas, nesta ordem: `audit`, `levantar`, `entender`,
+`entregar`, `prototipar`, `handoff`. Cada etapa tem uma porta e um agente que
+enumera as skills dela.
+
+## Entrada
+
+- Skill `dk` — porta geral. Lê o estado do projeto e escolhe a etapa.
+- CLI `bin/dk` — parte determinística. Simula por padrão; `--apply` é explícito.
+
+## Regras críticas
+
+- Nenhum artefato é gravado sem que sua fonte tenha sido lida.
+- Toda escrita declara escopo, simula, e só então aplica.
+- Requisito que já existe é atualizado, nunca duplicado.
+
+## Onde está o detalhe
+
+- Contrato completo e invariantes: `llms-full.txt`
+- Contrato de resposta das skills: `docs/contrato-de-resposta.md`
+- Políticas de governança: `governance/`
+- Validadores: `tests/validate_*.py`, coletados por `verificar.py`

@@ -1,0 +1,99 @@
+# dk — contrato para agentes
+
+## Visão
+
+O `dk` conduz um projeto de design da reunião com o cliente ao handoff para
+desenvolvimento, produzindo artefatos rastreáveis em cada etapa. Ele não é uma
+biblioteca de componentes: governa processo e artefato.
+
+## Arquitetura
+
+Núcleo determinístico em Python roda antes de qualquer LLM. A LLM entra onde há
+raciocínio — redigir, julgar relevância, decidir se duas regras são a mesma. Forma,
+extração, vínculo e validação são código.
+
+```
+bin/dk  →  core/  →  registry/  →  skills (LLM)  →  artefato
+```
+
+## Terminologia
+
+- **Etapa** — uma das seis fases: audit, levantar, entender, entregar, prototipar, handoff.
+- **Porta** — a skill sem portão que dá entrada numa etapa.
+- **Portão** — a frase na description que amarra a skill a uma etapa.
+- **Registro** — arquivo em `registry/` com os itens de um tipo: regras, requisitos, decisões.
+- **Procedência** — data, fonte, autoria e citação literal que sustentam um item.
+
+## Modelo operacional
+
+1. A porta `dk` lê o estado do projeto e escolhe a etapa.
+2. O agente da etapa enumera suas skills e escolhe uma.
+3. A skill lê o que já existe, simula a escrita, mostra o diff.
+4. Aplicar é explícito.
+
+## Estrutura
+
+`core/` núcleo · `skills/` skills planas · `agents/` um por etapa ·
+`modules/` módulos com manifesto próprio · `governance/` políticas ·
+`tests/` validadores · `verificar.py` coletor.
+
+## Etapas e portas
+
+| Etapa | Porta | Entrega |
+|---|---|---|
+| audit | `dk-audit` | mapa do projeto e conformidade |
+| levantar | `dk-levantar` | ata, regras de negócio, requisitos |
+| entender | `dk-entender` | cobertura, lacunas, léxico |
+| entregar | `dk-entregar` | documento formatado para o cliente |
+| prototipar | `dk-prototipar` | protótipo, tokens, componentes |
+| handoff | `dk-handoff` | passagem para desenvolvimento |
+
+## Skills
+
+Toda skill declara `name`, `description`, `argument-hint`, `allowed-tools` e
+`forma-da-saida`. Toda skill que não é porta declara o portão da sua etapa.
+
+## Agentes e enumeração
+
+`agents/dk-<etapa>.md` contém a seção `## Skills desta etapa` listando cada skill
+da etapa. Skill com portão que não aparece ali é inalcançável, e o validador reprova.
+
+## CLI
+
+`bin/dk <comando> --projeto <raiz> [--apply]`. Sem `--apply`, simula e imprime o diff.
+
+## Registros
+
+`registry/<tipo>.json`, lista de objetos com `id`. Item com id existente é fundido,
+nunca anexado. Campo ausente na atualização preserva o valor anterior.
+
+## Validação
+
+`python3 verificar.py` roda todo `tests/validate_*.py`. `--release` roda o portão
+de release. O hook `pre-push` chama o coletor, e sua ativação é verificada por teste.
+
+## Compatibilidade
+
+O `dk` é autônomo. Não lê, referencia nem depende de `seakit`, `sea-design-kit` ou
+`design-ai-community`. Nenhuma dependência externa é obrigatória.
+
+## Processo de extensão
+
+Skill nova precisa: portão da etapa, enumeração no agente da etapa, `forma-da-saida`,
+referência ao contrato de resposta, e passar em `verificar.py`. Skill que duplica
+capacidade existente é recusada na revisão — a política está em
+`governance/naming-conventions.md`.
+
+## NON-NEGOTIABLE INVARIANTS
+
+- Nenhum artefato é gravado sem que sua fonte tenha sido lida na sessão.
+- Toda operação de escrita declara escopo; escrita fora do escopo é recusada.
+- Toda operação de escrita simula por padrão; aplicar é explícito.
+- Toda escrita é atômica: arquivo temporário no mesmo diretório e `os.replace`.
+- O contrato de resposta é referenciado, nunca copiado.
+- Nenhuma operação lê o repositório inteiro por padrão.
+- Uma informação tem uma fonte canônica; toda outra ocorrência é derivada.
+- Toda skill que não é porta declara o portão da sua etapa.
+- Toda skill com portão é enumerada pelo agente da sua etapa.
+- Nenhuma dependência externa é obrigatória; ausência degrada anunciada.
+- O pacote não é publicado sem o teste de ciclo ponta a ponta verde.
