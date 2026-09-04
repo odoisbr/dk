@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+"""CLI do dk. Simula por padrão; `--apply` é explícito."""
+from __future__ import annotations
+import argparse
+import json
+import sys
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(RAIZ))
+
+from core import espinha, leitura, ops, registry  # noqa: E402
+
+
+def cmd_levantar(args) -> int:
+    projeto = Path(args.projeto).resolve()
+    reg = leitura.Registro()
+
+    fontes = []
+    for nome in ('requisitos', 'regras'):
+        p = projeto / 'registry' / f'{nome}.json'
+        if p.exists():
+            reg.ler(p)
+            fontes.append(p)
+
+    bruto = Path(args.insumo).read_text(encoding='utf-8')
+    a = espinha.ata(bruto)
+    novas_regras = espinha.regras(a)
+    novos_req = espinha.requisitos(novas_regras)
+
+    regras_atuais = registry.carregar(projeto, 'regras')
+    req_atuais = registry.carregar(projeto, 'requisitos')
+    acoes = {'criado': 0, 'atualizado': 0}
+    for r in novas_regras:
+        regras_atuais, acao = registry.upsert(regras_atuais, r)
+        acoes[acao] += 1
+    for q in novos_req:
+        req_atuais, acao = registry.upsert(req_atuais, q)
+        acoes[acao] += 1
+
+    op = ops.Operacao(projeto, escopo=['registry'], registro=reg, fontes=fontes)
+    planos = [
+        op.planejar(projeto / 'registry' / 'regras.json',
+                    json.dumps(regras_atuais, ensure_ascii=False, indent=2) + '\n'),
+        op.planejar(projeto / 'registry' / 'requisitos.json',
+                    json.dumps(req_atuais, ensure_ascii=False, indent=2) + '\n'),
+    ]
+
+    if not args.apply:
+        for p in planos:
+            print(f"{p['acao']}: {p['caminho']}")
+        print(f"regras {len(novas_regras)} · requisitos {len(novos_req)} · "
+              f"criados {acoes['criado']} · atualizados {acoes['atualizado']}")
+        print('simulação — nada foi gravado. Use --apply para aplicar.')
+        return 0
+
+    op.aplicar()
+    print(f"gravado: criados {acoes['criado']}, atualizados {acoes['atualizado']}")
+    return 0
+
+
+def main() -> int:
+    p = argparse.ArgumentParser(prog='dk')
+    sub = p.add_subparsers(dest='cmd', required=True)
+    lev = sub.add_parser('levantar', help='insumo de reunião → regras e requisitos')
+    lev.add_argument('--projeto', required=True)
+    lev.add_argument('--insumo', required=True)
+    lev.add_argument('--apply', action='store_true',
+                     help='aplica; sem esta flag, apenas simula')
+    lev.set_defaults(func=cmd_levantar)
+    args = p.parse_args()
+    return args.func(args)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
