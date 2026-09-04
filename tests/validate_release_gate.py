@@ -39,6 +39,8 @@ ITENS = [
     ('gate de prontidão', 'tests/validate_prontidao.py'),
     ('matriz de rastreabilidade', 'tests/validate_rastreabilidade.py'),
     ('escrita no registro canônico não estraga', 'tests/validate_escrita_canonica.py'),
+    ('entregáveis de comunicação', 'tests/validate_ciclo_comunicacao.py'),
+    ('deck 16:9', 'tests/validate_deck.py'),
 ]
 
 errors = []

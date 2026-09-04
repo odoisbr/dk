@@ -13,7 +13,7 @@ RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
 from core import (changeset, cobertura, conformidade,  # noqa: E402
-                  consistencia, documento, entregaveis, espinha, ids, lacunas,
+                  consistencia, deck, documento, entregaveis, espinha, ids, lacunas,
                   leitura, mapa, ops, padrao, prontidao, prototipo,
                   rastreabilidade, registry, scan)
 
@@ -199,8 +199,49 @@ def _renderizador_pdf() -> str:
     return str(macos) if macos.exists() else ''
 
 
+def _entregar_deck(args, projeto: Path) -> int:
+    """Apresentação é a única saída do DK que não parte de prosa: o corpo é um
+    JSON com `meta` e `slides`, porque slide é estrutura, não texto corrido."""
+    try:
+        dados = json.loads(Path(args.corpo).read_text(encoding='utf-8'))
+    except json.JSONDecodeError as exc:
+        print(f'o corpo da apresentação precisa ser JSON: {exc}')
+        return 1
+
+    slides = dados.get('slides') or []
+    meta = dados.get('meta') or {}
+    meta.setdefault('titulo', projeto.name)
+
+    achados = deck.validar(slides)
+    for a in achados:
+        print(f"{a['id']} (slide {a['slide']}): {a['titulo']} — {a['evidencia']}")
+    if [a for a in achados if a['impacto'] == 'alto']:
+        print('a apresentação não foi gerada.')
+        return 1
+
+    pasta = entregaveis.destino('apresentacao')
+    alvo = projeto / pasta / f'apresentacao-{_hoje_iso()}.html'
+    reg = leitura.Registro()
+    fontes = []
+    if alvo.exists():
+        reg.ler(alvo)
+        fontes.append(alvo)
+    op = ops.Operacao(projeto, escopo=[pasta], registro=reg, fontes=fontes)
+    plano = op.planejar(alvo, deck.montar(meta, slides))
+    print(f"{plano['acao']}: {plano['caminho']} · {len(slides)} slide(s)")
+
+    if not args.apply:
+        print('simulação — nada foi gravado. Use --apply para aplicar.')
+        return 0
+    op.aplicar()
+    print(f'gravado: {alvo.relative_to(projeto)}')
+    return 0
+
+
 def cmd_entregar(args) -> int:
     projeto = Path(args.projeto).resolve()
+    if args.tipo == 'apresentacao':
+        return _entregar_deck(args, projeto)
     corpo_md = Path(args.corpo).read_text(encoding='utf-8')
 
     achados = entregaveis.validar(args.tipo, corpo_md)
@@ -215,7 +256,7 @@ def cmd_entregar(args) -> int:
     meta = {'Projeto': projeto.name, 'Gerado em': _hoje()}
     html = documento.montar(contrato['titulo'], projeto.name, corpo_md, meta)
 
-    pasta = padrao.destino(args.tipo)
+    pasta = entregaveis.destino(args.tipo)
     alvo = projeto / pasta / f'{args.tipo}-{_hoje_iso()}.html'
 
     reg = leitura.Registro()
@@ -453,7 +494,8 @@ def main() -> int:
 
     ent = sub.add_parser('entregar', help='gera entregável formatado')
     ent.add_argument('--projeto', required=True)
-    ent.add_argument('--tipo', required=True, choices=sorted(entregaveis.CONTRATOS))
+    ent.add_argument('--tipo', required=True,
+                     choices=sorted(list(entregaveis.CONTRATOS) + ['apresentacao']))
     ent.add_argument('--corpo', required=True)
     ent.add_argument('--pdf', action='store_true',
                      help='tenta gerar PDF; ausência de renderizador é anunciada')

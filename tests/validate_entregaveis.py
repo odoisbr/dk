@@ -50,6 +50,54 @@ if 'REQ-EPICO' not in {a['id'] for a in
                                            '## 1. Contexto e objetivo\n')}:
     errors.append('documento de requisitos sem épico deveria reprovar')
 
+
+# Manual e e-mail: portados do Design Community, com as regras que a skill de lá
+# enunciava em prosa.
+for tipo in ('manual', 'email'):
+    if tipo not in entregaveis.CONTRATOS:
+        errors.append(f'contrato de {tipo} ausente')
+
+EMAIL_OK = """## Assunto: (Entrega) Credenciamento SESC-DF
+
+## Abertura
+
+Prezados,
+
+## Resumo
+
+O projeto contemplou os principais pontos.
+
+## Status do ambiente
+
+Homologação.
+
+## Itens da entrega
+
+1.1 Renovação de credencial.
+
+## Encerramento
+
+Em caso de dúvidas, estou à disposição.
+"""
+if entregaveis.validar('email', EMAIL_OK):
+    errors.append(f'e-mail completo não deveria reprovar: '
+                  f'{entregaveis.validar("email", EMAIL_OK)}')
+
+fora = EMAIL_OK.replace('(Entrega) Credenciamento SESC-DF', 'Entrega do projeto')
+if 'EMA-ASSUNTO' not in {a['id'] for a in entregaveis.validar('email', fora)}:
+    errors.append('assunto fora do padrão deveria reprovar')
+
+vazando = EMAIL_OK + '\nDADOS DE ACESSO\nUsuário: admin\nSenha: sesc2026\n'
+ach = [a for a in entregaveis.validar('email', vazando) if a['id'] == 'EMA-CREDENCIAL']
+if not ach:
+    errors.append('VAZAMENTO: credencial preenchida no e-mail não foi barrada')
+elif ach[0]['impacto'] != 'alto':
+    errors.append('credencial em e-mail tem que bloquear, não avisar')
+
+marcador = EMAIL_OK + '\nDADOS DE ACESSO\nUsuário: <informar>\nSenha: <informar>\n'
+if 'EMA-CREDENCIAL' in {a['id'] for a in entregaveis.validar('email', marcador)}:
+    errors.append('bloco com marcador é válido e não deveria reprovar')
+
 if 'TIPO-DESCONHECIDO' not in {a['id'] for a in entregaveis.validar('bolo', 'x')}:
     errors.append('tipo sem contrato deveria ser recusado')
 

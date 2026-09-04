@@ -14,6 +14,8 @@ Transforma o que está no registro em documento com a identidade da casa.
 - O HTML é o entregável canônico e é autocontido. PDF é conveniência; quando não dá para
   gerar, o dk diz.
 - Documento anterior é lido antes de ser substituído.
+- Credencial nunca entra em entregável. O bloco de acesso existe com marcador; quem
+  envia preenche por canal seguro.
 
 ## Skills desta etapa
 
@@ -21,6 +23,9 @@ Transforma o que está no registro em documento com a identidade da casa.
 |---|---|
 | `dk-entregar-ata` | o entregável é a ata de reunião |
 | `dk-entregar-requisitos` | o entregável é o Documento de Requisitos de Design |
+| `dk-entregar-manual` | o entregável é o manual de uso do sistema |
+| `dk-entregar-email` | o entregável é o e-mail formal de entrega |
+| `dk-entregar-apresentacao` | o entregável é deck, slide, apresentação ou guia prático |
 
 ## Procedimento
 

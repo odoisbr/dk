@@ -36,6 +36,25 @@ CONTRATOS: Dict[str, dict] = {
         ],
         'proibidas': [],
     },
+    'manual': {
+        'titulo': 'Manual de Uso',
+        'secoes': [
+            'Sumário', 'Introdução', 'O que o sistema faz',
+            'O que o sistema NÃO faz', 'Perfis de acesso e responsabilidades',
+            'Funcionalidades por perfil', 'Cenários de exceção',
+            'Funcionalidades futuras', 'Orientações em caso de problemas',
+            'Encerramento',
+        ],
+        'proibidas': [],
+    },
+    'email': {
+        'titulo': 'E-mail de Entrega',
+        'secoes': [
+            'Assunto', 'Abertura', 'Resumo', 'Status do ambiente',
+            'Itens da entrega', 'Encerramento',
+        ],
+        'proibidas': [],
+    },
     'requisitos': {
         'titulo': 'Documento de Requisitos de Design',
         'secoes': [
@@ -49,6 +68,23 @@ CONTRATOS: Dict[str, dict] = {
         'proibidas': [],
     },
 }
+
+# Onde cada tipo é gravado. Os 12 entregáveis canônicos do padrão de projeto
+# vivem em `core.padrao` e não são inchados aqui: manual, e-mail e apresentação
+# são saídas do DK, não itens do padrão da casa.
+DESTINOS = {
+    'manual': '3-entregaveis',
+    'email': '3-entregaveis',
+    'apresentacao': '3-entregaveis',
+}
+
+
+def destino(tipo: str) -> str:
+    from core import padrao
+    if tipo in DESTINOS:
+        return DESTINOS[tipo]
+    return padrao.destino(tipo)
+
 
 _MARCADORES = ('[verificar]', '[A CONFIRMAR]')
 
@@ -115,6 +151,34 @@ def validar(tipo: str, corpo_md: str) -> List[dict]:
                     'impacto': 'medio',
                 })
                 break
+
+    if tipo == 'email':
+        assunto = ''
+        for linha in corpo_md.splitlines():
+            if 'assunto' in linha.lower() and ':' in linha:
+                assunto = linha.split(':', 1)[1].strip()
+                break
+        if assunto and not assunto.startswith('(Entrega)'):
+            achados.append({
+                'id': 'EMA-ASSUNTO',
+                'titulo': 'assunto fora do padrão',
+                'evidencia': f'{assunto[:60]!r} — o padrão é "(Entrega) <projeto>"',
+                'impacto': 'medio',
+            })
+        # Credencial não é transcrita para e-mail. O bloco de acesso existe, mas
+        # com marcador: senha em corpo de e-mail é vazamento por design.
+        preenchidos = [v.strip() for v in re.findall(
+            r'(?:Usu[áa]rio|Senha|Password)\s*:\s*([^\n]*)', corpo_md)
+            if v.strip() and not v.strip().startswith(('<', '[', '{', '_'))]
+        if preenchidos:
+            achados.append({
+                'id': 'EMA-CREDENCIAL',
+                'titulo': 'bloco de acesso com credencial preenchida',
+                'evidencia': f'{len(preenchidos)} campo(s) de acesso com valor — '
+                             'credencial nunca é inventada nem transcrita para o '
+                             'e-mail; deixe marcador ou remova o bloco',
+                'impacto': 'alto',
+            })
 
     if tipo == 'requisitos' and not re.search(r'^#+.*\bE-\d', corpo_md, re.M):
         achados.append({
