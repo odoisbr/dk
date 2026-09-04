@@ -23,6 +23,7 @@ antes de a próxima etapa começar.
 | `dk-entender-consistencia` | a pergunta é se os requisitos fecham entre si |
 | `dk-entender-csd` | é preciso separar o que se sabe do que se presume |
 | `dk-entender-inception` | o trabalho é a inception, o MVP ou o escopo da onda 1 |
+| `dk-entender-similares` | o trabalho é benchmark, referência externa ou concorrente |
 
 ## Procedimento
 

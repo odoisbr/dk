@@ -45,6 +45,7 @@ ITENS = [
     ('tokens DTCG', 'tests/validate_tokens.py'),
     ('leitor de YAML recusa o que não entende', 'tests/validate_miniyaml.py'),
     ('agenda da Lean Inception cobrada', 'tests/validate_inception.py'),
+    ('similares com procedência', 'tests/validate_similares.py'),
     ('guardas de git bloqueiam', 'tests/validate_git.py'),
     ('ciclo do git: configurar, commitar, preparar o MR',
      'tests/validate_e2e_git.py'),

@@ -15,7 +15,7 @@ sys.path.insert(0, str(RAIZ))
 from core import (changeset, cobertura, conformidade,  # noqa: E402
                   consistencia, deck, documento, entregaveis, espinha, ids,
                   inception, io, lacunas, leitura, mapa, ops, padrao, prontidao,
-                  prototipo,
+                  prototipo, similares,
                   rastreabilidade, registry, scan)
 from core import git as vcs  # noqa: E402
 
@@ -152,10 +152,26 @@ def _entender_inception(args, projeto: Path) -> int:
     return 0
 
 
+def _entender_similares(args, projeto: Path) -> int:
+    r = similares.avaliar(projeto)
+    if args.json:
+        print(json.dumps(r, ensure_ascii=False, indent=2))
+        return 0
+    print(similares.matriz(projeto))
+    for a in r['achados']:
+        quem = ('código decidiu' if a['decidido_por'] == 'codigo'
+                else 'candidato — a skill decide')
+        print(f"{a['id']} [{a['impacto']}] ({quem}): {a['titulo']}")
+        print(f"  {a['evidencia']}")
+    return 0
+
+
 def cmd_entender(args) -> int:
     projeto = Path(args.projeto).resolve()
     if args.inception:
         return _entender_inception(args, projeto)
+    if args.similares:
+        return _entender_similares(args, projeto)
     cob = cobertura.matriz(projeto)
     inc = consistencia.analisar(registry.carregar(projeto, 'regras'),
                                 registry.carregar(projeto, 'requisitos'))
@@ -688,6 +704,8 @@ def main() -> int:
     und.add_argument('--json', action='store_true')
     und.add_argument('--inception', action='store_true',
                      help='cobra a agenda da Lean Inception contra o registro')
+    und.add_argument('--similares', action='store_true',
+                     help='matriz de similares e procedência das observações')
     und.set_defaults(func=cmd_entender)
 
     pro = sub.add_parser('prototipar', help='changeset e padrão do protótipo')
