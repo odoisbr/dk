@@ -12,9 +12,59 @@ from shutil import which
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
-from core import (cobertura, conformidade, consistencia,  # noqa: E402
-                  documento, entregaveis, espinha, lacunas, leitura, mapa,
-                  ops, padrao, registry, scan)
+from core import (changeset, cobertura, conformidade,  # noqa: E402
+                  consistencia, documento, entregaveis, espinha, lacunas,
+                  leitura, mapa, ops, padrao, prototipo, registry, scan)
+
+
+def cmd_prototipar(args) -> int:
+    projeto = Path(args.projeto).resolve()
+
+    if args.verificar:
+        achados = prototipo.verificar(projeto)
+        for a in achados:
+            print(f"regra {a['regra']}: {a['titulo']}")
+            print(f"  {a['evidencia']}")
+        altos = [a for a in achados if a['impacto'] == 'alto']
+        print(f'{len(achados)} achado(s) · {len(altos)} de impacto alto')
+        return 1 if achados else 0
+
+    if not args.changeset:
+        print('sem --changeset não há mudança a abrir. '
+              'Use --verificar para só conferir o padrão.')
+        return 1
+
+    cs = changeset.abrir(args.changeset, args.titulo, args.origem,
+                         args.alvo or [])
+    problemas = changeset.validar(cs)
+    for a in problemas:
+        print(f"{a['id']}: {a['titulo']} — {a['evidencia']}")
+    if problemas:
+        print(f'{len(problemas)} problema(s) — o changeset não foi aberto.')
+        return 1
+
+    print(f"{cs['id']}: {cs['title']}")
+    print(f"  origem: {cs['source']}")
+    print(f"  affected: {', '.join(cs['affected'])}")
+
+    fora = [a for a in prototipo.verificar(projeto) if a['impacto'] == 'alto']
+    if fora:
+        print(f'  atenção: {len(fora)} violação(ões) de padrão já existentes '
+              'no protótipo — corrija-as neste changeset ou em outro')
+        for a in fora:
+            print(f"    regra {a['regra']}: {a['evidencia']}")
+
+    if not args.apply:
+        print('simulação — o changeset não foi gravado. '
+              'Use --apply para abrir de fato.')
+        return 0
+
+    op = ops.Operacao(projeto, escopo=['.dk'], registro=leitura.Registro())
+    op.planejar(projeto / '.dk' / 'changesets' / f"{cs['id']}.json",
+                json.dumps(cs, ensure_ascii=False, indent=2) + '\n')
+    op.aplicar()
+    print(f"aberto: .dk/changesets/{cs['id']}.json")
+    return 0
 
 
 def cmd_entender(args) -> int:
@@ -310,6 +360,18 @@ def main() -> int:
     und.add_argument('--projeto', required=True)
     und.add_argument('--json', action='store_true')
     und.set_defaults(func=cmd_entender)
+
+    pro = sub.add_parser('prototipar', help='changeset e padrão do protótipo')
+    pro.add_argument('--projeto', required=True)
+    pro.add_argument('--verificar', action='store_true',
+                     help='só verifica o padrão do protótipo')
+    pro.add_argument('--changeset')
+    pro.add_argument('--titulo', default='')
+    pro.add_argument('--origem', default='')
+    pro.add_argument('--alvo', action='append',
+                     help='caminho afetado; repetível. É o escopo da mudança')
+    pro.add_argument('--apply', action='store_true')
+    pro.set_defaults(func=cmd_prototipar)
 
     args = p.parse_args()
     return args.func(args)
