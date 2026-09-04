@@ -13,9 +13,10 @@ RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
 from core import (changeset, cobertura, conformidade,  # noqa: E402
-                  consistencia, deck, documento, entregaveis, espinha, ids, lacunas,
-                  leitura, mapa, ops, padrao, prontidao, prototipo,
+                  consistencia, deck, documento, entregaveis, espinha, ids,
+                  io, lacunas, leitura, mapa, ops, padrao, prontidao, prototipo,
                   rastreabilidade, registry, scan)
+from core import git as vcs  # noqa: E402
 
 
 def cmd_handoff(args) -> int:
@@ -474,6 +475,164 @@ def cmd_levantar(args) -> int:
     return 0
 
 
+def _bloqueia(achados) -> bool:
+    for a in achados:
+        print(f"{a['id']}: {a['titulo']} — {a['evidencia']}")
+    return bool([a for a in achados if a['impacto'] == 'alto'])
+
+
+def _git_estado(projeto: Path) -> int:
+    st = vcs.estado(projeto)
+    if not st['repositorio']:
+        print(f'{projeto} não é um repositório git — '
+              '`dk git --configurar --apply` inicia')
+        return 1
+    marca = ' (protegida)' if st['protegida'] else ''
+    print(f"branch: {st['branch']}{marca}")
+    print(f"alterados: {st['sujo']}")
+    if st['upstream']:
+        print(f"upstream: {st['upstream']} — {st['a_frente']} à frente, "
+              f"{st['atras']} atrás")
+
+    p = vcs.projeto_remoto(projeto)
+    if p.get('caminho'):
+        print(f"projeto: {p['grupo']}/{p['projeto']} em {p['host']}")
+        print(f"web: {p['web']}")
+    elif st['remoto']:
+        print(f"remoto: {st['remoto']} — não reconhecido como GitLab")
+    else:
+        print('sem remote origin')
+
+    conf = vcs.configuracao(projeto)
+    if conf['faltando']:
+        print('falta configurar: ' + ', '.join(conf['faltando']))
+    else:
+        print('git local configurado')
+    return 0
+
+
+def _git_configurar(args, projeto: Path) -> int:
+    if not vcs.e_repositorio(projeto) and args.apply:
+        subprocess.run(['git', 'init', '-q', str(projeto)], check=True)
+        print(f'git init: {projeto}')
+    elif not vcs.e_repositorio(projeto):
+        print(f'git init: {projeto}')
+
+    passos = []
+    if args.nome:
+        passos.append(['git', '-C', str(projeto), 'config', 'user.name', args.nome])
+    if args.email:
+        passos.append(['git', '-C', str(projeto), 'config', 'user.email', args.email])
+    if args.remoto:
+        acao = 'set-url' if vcs.estado(projeto).get('remoto') else 'add'
+        passos.append(['git', '-C', str(projeto), 'remote', acao, 'origin',
+                       args.remoto])
+    for cmd in passos:
+        print(' '.join(cmd[3:]))
+
+    ignore = projeto / '.gitignore'
+    conteudo = vcs.plano_gitignore(projeto)
+    atual = ignore.read_text(encoding='utf-8') if ignore.exists() else ''
+    if conteudo != atual:
+        print(f'.gitignore: acrescenta padrão sensível '
+              f'({len(conteudo.splitlines()) - len(atual.splitlines())} linhas)')
+
+    if not args.apply:
+        print('simulação — nada foi aplicado. Use --apply para aplicar.')
+        return 0
+
+    for cmd in passos:
+        subprocess.run(cmd, check=True)
+    if conteudo != atual:
+        io.atomic_write(ignore, conteudo)
+    print('git local configurado.')
+    return _git_estado(projeto)
+
+
+def _git_branch(args, projeto: Path) -> int:
+    tipo = args.tipo or vcs.tipo_de_branch(args.branch)
+    nome = vcs.nome_de_branch(tipo, args.branch)
+    print(f'tipo: {tipo}')
+    print(f'branch: {nome}')
+    if not args.apply:
+        print('simulação — nada foi criado. Use --apply para criar.')
+        return 0
+    r = subprocess.run(['git', '-C', str(projeto), 'checkout', '-b', nome],
+                       capture_output=True, text=True)
+    if r.returncode:
+        print(r.stderr.strip())
+        return 1
+    print(f'criada e ativa: {nome}')
+    return 0
+
+
+def _git_commit(args, projeto: Path) -> int:
+    if not args.arquivo:
+        print('--commit exige --arquivo (repetível). '
+              '`git add .` é proibido pela política.')
+        return 1
+    plano = vcs.plano_commit(projeto, args.arquivo, args.commit)
+    print(f"branch: {plano['branch']}")
+    for a in plano['arquivos']:
+        print(f'  {a}')
+    if plano['fora_do_diff']:
+        print('fora do diff (nada a commitar): '
+              + ', '.join(plano['fora_do_diff']))
+    if _bloqueia(plano['bloqueios']):
+        print('commit não foi feito.')
+        return 1
+    if not args.apply:
+        print('simulação — nada foi commitado. Use --apply para commitar.')
+        return 0
+    subprocess.run(['git', '-C', str(projeto), 'add', '--', *args.arquivo],
+                   check=True)
+    r = subprocess.run(['git', '-C', str(projeto), 'commit', '-m', args.commit],
+                       capture_output=True, text=True)
+    print((r.stdout + r.stderr).strip())
+    return r.returncode
+
+
+def _git_push(args, projeto: Path) -> int:
+    st = vcs.estado(projeto)
+    if _bloqueia(vcs.guardar(projeto, 'push')):
+        print('push não foi feito.')
+        return 1
+    p = vcs.projeto_remoto(projeto)
+    if not p.get('caminho'):
+        print('sem remote origin reconhecido — '
+              '`dk git --configurar --remoto <url>`')
+        return 1
+    titulo = args.titulo or st['branch']
+    cmd = vcs.comando_push_mr(st['branch'], titulo, alvo=args.alvo,
+                              descricao=args.descricao)
+    print(' '.join(cmd))
+    print(f"abre merge request para {args.alvo} em {p['web']}")
+    if not args.apply:
+        print('simulação — nada foi enviado. Use --apply para enviar.')
+        return 0
+    r = subprocess.run(cmd, cwd=str(projeto), capture_output=True, text=True)
+    saida = (r.stdout + r.stderr).strip()
+    print(saida)
+    if r.returncode:
+        print(f"o push falhou. O MR pode ser aberto em {p['novo_mr']}")
+    return r.returncode
+
+
+def cmd_git(args) -> int:
+    projeto = Path(args.projeto).resolve()
+    if args.configurar:
+        return _git_configurar(args, projeto)
+    if not vcs.e_repositorio(projeto):
+        return _git_estado(projeto)
+    if args.branch:
+        return _git_branch(args, projeto)
+    if args.commit:
+        return _git_commit(args, projeto)
+    if args.push:
+        return _git_push(args, projeto)
+    return _git_estado(projeto)
+
+
 def main() -> int:
     p = argparse.ArgumentParser(prog='dk')
     sub = p.add_subparsers(dest='cmd', required=True)
@@ -526,6 +685,28 @@ def main() -> int:
     han.add_argument('--corpo')
     han.add_argument('--apply', action='store_true')
     han.set_defaults(func=cmd_handoff)
+
+    g = sub.add_parser('git', help='git local, projeto no GitLab, commit e MR')
+    g.add_argument('--projeto', required=True)
+    g.add_argument('--configurar', action='store_true',
+                   help='prepara o git local: identidade, remoto e .gitignore')
+    g.add_argument('--nome', help='user.name local')
+    g.add_argument('--email', help='user.email local')
+    g.add_argument('--remoto', help='URL do origin')
+    g.add_argument('--branch', metavar='DESCRICAO',
+                   help='classifica o pedido e nomeia a branch de trabalho')
+    g.add_argument('--tipo', choices=sorted(vcs.TIPOS_BRANCH),
+                   help='força o tipo em vez de classificar pelo texto')
+    g.add_argument('--commit', metavar='MENSAGEM')
+    g.add_argument('--arquivo', action='append',
+                   help='arquivo que entra no commit; repetível e obrigatório')
+    g.add_argument('--push', action='store_true',
+                   help='envia a branch e abre o merge request')
+    g.add_argument('--titulo', dest='titulo', default='')
+    g.add_argument('--alvo', dest='alvo', default='main')
+    g.add_argument('--descricao', default='')
+    g.add_argument('--apply', action='store_true')
+    g.set_defaults(func=cmd_git)
 
     args = p.parse_args()
     return args.func(args)

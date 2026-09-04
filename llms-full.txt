@@ -47,6 +47,7 @@ bin/dk  →  core/  →  registry/  →  skills (LLM)  →  artefato
 | entregar | `dk-entregar` | documento formatado para o cliente |
 | prototipar | `dk-prototipar` | protótipo, tokens, componentes |
 | handoff | `dk-handoff` | passagem para desenvolvimento |
+| git | `dk-git` | git local, projeto no GitLab, commit e merge request |
 
 ## Skills
 

@@ -11,16 +11,17 @@ from typing import List
 
 RAIZ = Path(__file__).resolve().parents[1]
 
-ETAPAS = ('audit', 'levantar', 'entender', 'entregar', 'prototipar', 'handoff')
+ETAPAS = ('audit', 'levantar', 'entender', 'entregar', 'prototipar',
+          'handoff', 'git')
 PORTAS = {'dk'} | {f'dk-{e}' for e in ETAPAS}
-# Sete portas: uma por etapa mais a porta geral. A 2.560 B (~640 tokens) o catálogo
+# Oito portas: uma por etapa mais a porta geral. A 2.560 B (~640 tokens) o catálogo
 # fixo custa 5% dos 49.678 B que o Kit anterior gastava em toda sessão, e cabe com
 # folga no CORE CONTEXT de 3k tokens que a spec fixou.
 #
-# A folga não é convite: `MAX_PORTAS` trava em sete. Porta nova exige mudar este
+# A folga não é convite: `MAX_PORTAS` trava em oito. Porta nova exige mudar este
 # número, e mudar este número é uma decisão que aparece no diff.
 ORCAMENTO_BYTES = 2560
-MAX_PORTAS = 7
+MAX_PORTAS = 8
 
 _PORTAO = re.compile(
     r'use quando a etapa\s+([a-zà-ú-]+)\s+do dk estiver ativa', re.I)

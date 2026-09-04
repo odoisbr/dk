@@ -5,8 +5,9 @@ desenvolvimento. Plugin de Claude Code, autônomo, sem dependências obrigatóri
 
 ## O que é
 
-O `dk` conduz seis etapas, nesta ordem: `audit`, `levantar`, `entender`,
-`entregar`, `prototipar`, `handoff`. Cada etapa tem uma porta e um agente que
+O `dk` conduz sete etapas: `audit`, `levantar`, `entender`, `entregar`,
+`prototipar` e `handoff` nesta ordem, e `git`, que atende as demais quando o
+trabalho precisa chegar ao GitLab. Cada etapa tem uma porta e um agente que
 enumera as skills dela.
 
 ## Entrada
