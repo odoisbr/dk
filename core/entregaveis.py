@@ -22,6 +22,20 @@ CONTRATOS: Dict[str, dict] = {
         ],
         'proibidas': ['Próximos Passos', 'Observações Complementares'],
     },
+    'handoff': {
+        'titulo': 'Handoff para Desenvolvimento',
+        'secoes': [
+            'Visão geral',
+            'Escopo deste handoff',
+            'Design tokens',
+            'Inventário de componentes',
+            'Especificação por tela',
+            'Fluxos críticos',
+            'Rastreabilidade',
+            'Pendências e dependências',
+        ],
+        'proibidas': [],
+    },
     'requisitos': {
         'titulo': 'Documento de Requisitos de Design',
         'secoes': [

@@ -14,7 +14,71 @@ sys.path.insert(0, str(RAIZ))
 
 from core import (changeset, cobertura, conformidade,  # noqa: E402
                   consistencia, documento, entregaveis, espinha, lacunas,
-                  leitura, mapa, ops, padrao, prototipo, registry, scan)
+                  leitura, mapa, ops, padrao, prontidao, prototipo,
+                  rastreabilidade, registry, scan)
+
+
+def cmd_handoff(args) -> int:
+    projeto = Path(args.projeto).resolve()
+
+    if args.matriz:
+        print(rastreabilidade.markdown(rastreabilidade.matriz(projeto)))
+        return 0
+
+    r = prontidao.avaliar(projeto)
+    marcas = {'ok': '[x]', 'aviso': '[!]', 'bloqueio': '[ ]'}
+    for i in r['itens']:
+        print(f"{marcas[i['estado']]} {i['nome']}: {i['evidencia']}")
+        if i['estado'] != 'ok':
+            print(f"      resolve em `{i['resolve_em']}` — {i['comando']}")
+
+    if not r['pronto']:
+        print(f"\n{len(r['bloqueios'])} bloqueio(s) — o pacote de handoff "
+              'não foi gerado.')
+        return 1
+
+    if r['avisos']:
+        print(f"\n{len(r['avisos'])} aviso(s) — o pacote sai, com ressalva.")
+
+    if not args.corpo:
+        print('\ngate aberto. Rode de novo com --corpo <arquivo.md> para gerar '
+              'o pacote.')
+        return 0
+
+    corpo = Path(args.corpo).read_text(encoding='utf-8')
+    if '{{RASTREABILIDADE}}' in corpo:
+        corpo = corpo.replace(
+            '{{RASTREABILIDADE}}',
+            rastreabilidade.markdown(rastreabilidade.matriz(projeto)))
+
+    achados = entregaveis.validar('handoff', corpo)
+    for a in achados:
+        print(f"{a['id']}: {a['titulo']} — {a['evidencia']}")
+    if [a for a in achados if a['impacto'] == 'alto']:
+        print('o pacote não foi gerado.')
+        return 1
+
+    html = documento.montar('Handoff para Desenvolvimento', projeto.name, corpo,
+                            {'Projeto': projeto.name, 'Gerado em': _hoje()})
+    pasta = padrao.destino('handoff')
+    alvo = projeto / pasta / f'handoff-{_hoje_iso()}.html'
+
+    reg = leitura.Registro()
+    fontes = []
+    if alvo.exists():
+        reg.ler(alvo)
+        fontes.append(alvo)
+    op = ops.Operacao(projeto, escopo=[pasta], registro=reg, fontes=fontes)
+    plano = op.planejar(alvo, html)
+    print(f"{plano['acao']}: {plano['caminho']}")
+
+    if not args.apply:
+        print('simulação — nada foi gravado. Use --apply para aplicar.')
+        return 0
+
+    op.aplicar()
+    print(f'gravado: {alvo.relative_to(projeto)}')
+    return 0
 
 
 def cmd_prototipar(args) -> int:
@@ -372,6 +436,14 @@ def main() -> int:
                      help='caminho afetado; repetível. É o escopo da mudança')
     pro.add_argument('--apply', action='store_true')
     pro.set_defaults(func=cmd_prototipar)
+
+    han = sub.add_parser('handoff', help='gate de prontidão e pacote de handoff')
+    han.add_argument('--projeto', required=True)
+    han.add_argument('--matriz', action='store_true',
+                     help='só emite a matriz de rastreabilidade')
+    han.add_argument('--corpo')
+    han.add_argument('--apply', action='store_true')
+    han.set_defaults(func=cmd_handoff)
 
     args = p.parse_args()
     return args.func(args)
