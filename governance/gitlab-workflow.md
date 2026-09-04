@@ -1,5 +1,5 @@
 ---
-title: Fluxo de GitLab — Design AI Community
+title: Fluxo de GitLab — dk
 area: governance
 status: published
 owner: angelo.pimentel
