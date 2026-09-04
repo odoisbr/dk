@@ -80,9 +80,12 @@ def requisitos(lista_regras: List[Dict]) -> List[Dict]:
 
 
 def cobertura(lista_requisitos: List[Dict], lista_regras: List[Dict]) -> Dict:
-    """Toda regra precisa de pelo menos um requisito. O que faltar é furo."""
-    cobertas = {q.get('deriva_de') for q in lista_requisitos}
-    faltando = [r['id'] for r in lista_regras if r['id'] not in cobertas]
+    """Toda regra precisa de pelo menos um requisito. O que faltar é furo.
+
+    A conta vive em `core.cobertura`; aqui é só a porta que a espinha usa. Duas
+    implementações da mesma conta divergem — foi o que a auditoria mediu no Kit."""
+    from core import cobertura as _cobertura
+    faltando = _cobertura.regras_sem_requisito(lista_requisitos, lista_regras)
     return {
         'total_regras': len(lista_regras),
         'total_requisitos': len(lista_requisitos),
