@@ -32,6 +32,9 @@ ITENS = [
     ('seis tipos de inconsistência', 'tests/validate_consistencia.py'),
     ('lacunas contra checklist', 'tests/validate_lacunas.py'),
     ('matriz de cobertura', 'tests/validate_cobertura.py'),
+    ('ajuste fora do escopo é recusado', 'tests/validate_ciclo_prototipar.py'),
+    ('changeset com alvo declarado', 'tests/validate_changeset.py'),
+    ('padrão do protótipo', 'tests/validate_prototipo.py'),
 ]
 
 errors = []
