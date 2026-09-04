@@ -35,6 +35,9 @@ ITENS = [
     ('ajuste fora do escopo é recusado', 'tests/validate_ciclo_prototipar.py'),
     ('changeset com alvo declarado', 'tests/validate_changeset.py'),
     ('padrão do protótipo', 'tests/validate_prototipo.py'),
+    ('gate do handoff bloqueia e libera', 'tests/validate_ciclo_handoff.py'),
+    ('gate de prontidão', 'tests/validate_prontidao.py'),
+    ('matriz de rastreabilidade', 'tests/validate_rastreabilidade.py'),
 ]
 
 errors = []
