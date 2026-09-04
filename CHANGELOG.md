@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.1 — 04/09/2026
+
+Correção de empacotamento. A 1.0.0 foi marcada sem o `marketplace.json`, e sem
+ele o plugin não é instalável — o Claude não encontra o que instalar.
+
+- `.claude-plugin/marketplace.json`, declarando o plugin e sua versão.
+- `README.md` com instalação, as sete etapas e o que o plugin garante.
+
+Nada do comportamento do plugin mudou.
+
 ## 1.0.0 — 04/09/2026
 
 Primeira versão estável. O `dk` substitui o `sea-design-kit` como plugin de

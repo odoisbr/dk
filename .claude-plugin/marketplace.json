@@ -2,14 +2,14 @@
   "name": "dk",
   "description": "Processo de design ponta a ponta: da reunião com o cliente ao handoff para desenvolvimento.",
   "owner": {
-    "name": "SEA Tecnologia"
+    "name": "Angelo Pimentel - SEA Tecnologia"
   },
   "plugins": [
     {
       "name": "dk",
       "source": ".",
       "description": "Sete etapas com portão de contexto, escrita simulada por padrão e portão de release: audit, levantar, entender, entregar, prototipar, handoff e git.",
-      "version": "1.0.0"
+      "version": "1.0.1"
     }
   ]
 }
