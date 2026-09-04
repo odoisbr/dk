@@ -9,7 +9,88 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
-from core import espinha, leitura, ops, registry  # noqa: E402
+from core import (conformidade, espinha, leitura, mapa, ops,  # noqa: E402
+                  registry, scan)
+
+
+def _llms_do_projeto(m: dict, conf: dict) -> str:
+    proj = m['projeto']
+    linhas = ['# ' + Path(m['raiz']).name, '']
+    if proj.get('stack'):
+        linhas.append(f"Projeto {proj.get('tipo', 'indefinido')} — "
+                      f"{', '.join(proj['stack'])}.")
+    else:
+        linhas.append(f"Projeto {proj.get('tipo', 'indefinido')}.")
+    if proj.get('gerenciador'):
+        linhas.append(f"Gerenciador: {proj['gerenciador']}.")
+    linhas += ['', '## Conformidade com o DK', '',
+               f"- Estado: {conf['classificacao']}"]
+    for a in conf['artefatos']:
+        linhas.append(f"- {a['caminho']} — {a['papel']}")
+    if m['entrypoints']:
+        linhas += ['', '## Entrypoints', '']
+        linhas += [f'- {c}' for c in m['entrypoints']]
+    if m['configs']:
+        linhas += ['', '## Configuração', '']
+        linhas += [f'- {c}' for c in m['configs']]
+    if m['documentos']:
+        linhas += ['', '## Documentos', '']
+        linhas += [f'- {c}' for c in m['documentos'][:20]]
+    linhas += ['', '## Custo de contexto', '',
+               f"- {m['metricas']['arquivos']} arquivos mapeados",
+               f"- {m['metricas']['tokens_estimados_total']} tokens no total "
+               f"({m['metricas']['nota']})",
+               f"- {m['metricas'].get('tokens_dos_importantes', 0)} tokens "
+               'nos arquivos importantes', '']
+    return '\n'.join(linhas)
+
+
+def cmd_audit(args) -> int:
+    projeto = Path(args.projeto).resolve()
+    m = mapa.montar(projeto, nivel=args.nivel)
+    m['raiz'] = str(projeto)
+    conf = conformidade.avaliar(projeto, scan.varrer(projeto))
+
+    if args.json:
+        print(json.dumps({
+            'projeto': m['projeto'], 'estrutura': m['estrutura'],
+            'metricas': m['metricas'], 'conformidade': conf,
+            'importantes': m['importantes'], 'ignorados': m['ignorados'],
+        }, ensure_ascii=False, indent=2))
+        return 0
+
+    texto_llms = _llms_do_projeto(m, conf)
+    op = ops.Operacao(projeto, escopo=['.dk', 'llms.txt'])
+    planos = [
+        op.planejar(projeto / '.dk' / 'mapa.json',
+                    json.dumps(m, ensure_ascii=False, indent=2) + '\n'),
+        op.planejar(projeto / 'llms.txt', texto_llms),
+    ]
+
+    proj = m['projeto']
+    print(f"tipo: {proj.get('tipo')} · "
+          f"stack: {', '.join(proj.get('stack') or []) or '—'} · "
+          f"gerenciador: {proj.get('gerenciador') or '—'}")
+    for ev in proj.get('evidencias', []):
+        print(f'  evidência: {ev}')
+    print(f"conformidade com o DK: {conf['classificacao']}")
+    for a in conf['achados']:
+        print(f"  {a['id']}: {a['titulo']} — {a['evidencia']}")
+    print(f"{m['metricas']['arquivos']} arquivos · "
+          f"{m['metricas']['tokens_estimados_total']} tokens "
+          f"({m['metricas']['nota']})")
+    for motivo, n in sorted(m['ignorados'].items()):
+        print(f'  ignorados {n}: {motivo}')
+
+    if not args.apply:
+        for p in planos:
+            print(f"{p['acao']}: {p['caminho']}")
+        print('simulação — nada foi gravado. Use --apply para aplicar.')
+        return 0
+
+    op.aplicar()
+    print('gravado: .dk/mapa.json e llms.txt')
+    return 0
 
 
 def cmd_levantar(args) -> int:
@@ -68,6 +149,15 @@ def main() -> int:
     lev.add_argument('--apply', action='store_true',
                      help='aplica; sem esta flag, apenas simula')
     lev.set_defaults(func=cmd_levantar)
+
+    aud = sub.add_parser('audit', help='mapeia o projeto e avalia conformidade')
+    aud.add_argument('--projeto', required=True)
+    aud.add_argument('--nivel', type=int, default=2, choices=(0, 1, 2))
+    aud.add_argument('--json', action='store_true')
+    aud.add_argument('--apply', action='store_true',
+                     help='grava .dk/mapa.json e llms.txt; sem a flag, simula')
+    aud.set_defaults(func=cmd_audit)
+
     args = p.parse_args()
     return args.func(args)
 
