@@ -24,6 +24,10 @@ ITENS = [
     ('governança recuperada', 'tests/validate_governanca.py'),
     ('dogfooding: o dk audita o próprio dk', 'tests/validate_dogfooding.py'),
     ('varredura sem leitura e sem segredo', 'tests/validate_scan.py'),
+    ('ciclo do entregável', 'tests/validate_ciclo_entregavel.py'),
+    ('contrato dos entregáveis', 'tests/validate_entregaveis.py'),
+    ('padrão de projeto', 'tests/validate_padrao.py'),
+    ('tokens da marca', 'tests/validate_marca.py'),
 ]
 
 errors = []
