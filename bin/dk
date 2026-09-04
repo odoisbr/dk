@@ -13,7 +13,7 @@ RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
 from core import (changeset, cobertura, conformidade,  # noqa: E402
-                  consistencia, documento, entregaveis, espinha, lacunas,
+                  consistencia, documento, entregaveis, espinha, ids, lacunas,
                   leitura, mapa, ops, padrao, prontidao, prototipo,
                   rastreabilidade, registry, scan)
 
@@ -346,39 +346,79 @@ def cmd_audit(args) -> int:
     return 0
 
 
+def _conciliar(projeto: Path, nome: str, prefixo: str, candidatos: list):
+    """Dá id a cada candidato e funde no registro que o projeto já tem.
+
+    Candidato cuja `origem_chave` já existe reusa o id que estava lá — é o que
+    faz a revisão da mesma ata atualizar em vez de duplicar. Candidato novo pega
+    o próximo id do contador do projeto: começar do 001 escrevia por cima do que
+    o projeto já tinha."""
+    atuais = registry.carregar(projeto, nome)
+    por_chave = {i.get('origem_chave'): i for i in atuais if i.get('origem_chave')}
+    contador = ids.base(projeto, prefixo, atuais)
+    acoes = {'criado': 0, 'atualizado': 0}
+
+    for candidato in candidatos:
+        existente = por_chave.get(candidato.get('origem_chave'))
+        if existente:
+            candidato['id'] = existente['id']
+        else:
+            contador += 1
+            candidato['id'] = f'{prefixo}-{contador:03d}'
+        atuais, acao = registry.upsert(atuais, candidato)
+        acoes[acao] += 1
+
+    return atuais, acoes, contador
+
+
 def cmd_levantar(args) -> int:
     projeto = Path(args.projeto).resolve()
     reg = leitura.Registro()
 
     fontes = []
     for nome in ('requisitos', 'regras'):
-        p = projeto / 'registry' / f'{nome}.json'
+        p = registry.caminho(projeto, nome)
         if p.exists():
             reg.ler(p)
             fontes.append(p)
 
+    canonico = registry.esquema(projeto) == 'canonico'
+    prefixo_req = 'RF' if canonico else 'REQ'
+
     bruto = Path(args.insumo).read_text(encoding='utf-8')
     a = espinha.ata(bruto)
-    novas_regras = espinha.regras(a)
+    try:
+        origem = str(Path(args.insumo).resolve().relative_to(projeto))
+    except ValueError:
+        origem = Path(args.insumo).name
+    novas_regras = espinha.regras(a, origem=origem)
+
+    regras_atuais, acoes_r, ate_rn = _conciliar(projeto, 'regras', 'RN', novas_regras)
     novos_req = espinha.requisitos(novas_regras)
+    req_atuais, acoes_q, ate_req = _conciliar(projeto, 'requisitos', prefixo_req,
+                                              novos_req)
+    acoes = {k: acoes_r[k] + acoes_q[k] for k in acoes_r}
 
-    regras_atuais = registry.carregar(projeto, 'regras')
-    req_atuais = registry.carregar(projeto, 'requisitos')
-    acoes = {'criado': 0, 'atualizado': 0}
-    for r in novas_regras:
-        regras_atuais, acao = registry.upsert(regras_atuais, r)
-        acoes[acao] += 1
-    for q in novos_req:
-        req_atuais, acao = registry.upsert(req_atuais, q)
-        acoes[acao] += 1
-
-    op = ops.Operacao(projeto, escopo=['registry'], registro=reg, fontes=fontes)
+    alvo_regras = registry.caminho(projeto, 'regras')
+    alvo_req = registry.caminho(projeto, 'requisitos')
+    escopo = sorted({str(alvo_regras.parent.relative_to(projeto)),
+                     str(alvo_req.parent.relative_to(projeto))})
+    op = ops.Operacao(projeto, escopo=escopo, registro=reg, fontes=fontes)
+    esquema_alvo = registry.esquema(projeto)
     planos = [
-        op.planejar(projeto / 'registry' / 'regras.json',
-                    json.dumps(regras_atuais, ensure_ascii=False, indent=2) + '\n'),
-        op.planejar(projeto / 'registry' / 'requisitos.json',
-                    json.dumps(req_atuais, ensure_ascii=False, indent=2) + '\n'),
+        op.planejar(alvo_regras, json.dumps(
+            [registry.para_esquema('regras', r, esquema_alvo) for r in regras_atuais],
+            ensure_ascii=False, indent=2) + '\n'),
+        op.planejar(alvo_req, json.dumps(
+            [registry.para_esquema('requisitos', q, esquema_alvo) for q in req_atuais],
+            ensure_ascii=False, indent=2) + '\n'),
     ]
+    if canonico:
+        contadores = ids.atualizar_contador(
+            projeto, {'RN': ate_rn, prefixo_req: ate_req})
+        planos.append(op.planejar(
+            projeto / ids.CONTADORES,
+            json.dumps(contadores, ensure_ascii=False, indent=2) + '\n'))
 
     if not args.apply:
         for p in planos:

@@ -38,6 +38,7 @@ ITENS = [
     ('gate do handoff bloqueia e libera', 'tests/validate_ciclo_handoff.py'),
     ('gate de prontidão', 'tests/validate_prontidao.py'),
     ('matriz de rastreabilidade', 'tests/validate_rastreabilidade.py'),
+    ('escrita no registro canônico não estraga', 'tests/validate_escrita_canonica.py'),
 ]
 
 errors = []

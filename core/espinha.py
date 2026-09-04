@@ -5,12 +5,18 @@ O que exige raciocínio — redigir a regra em linguagem de negócio, julgar se 
 regras são a mesma — fica com a skill. O que é forma, extração e vínculo fica aqui,
 onde é testável e barato.
 
-LIMITAÇÃO CONHECIDA da identidade: o id da regra é posicional (ordem da fala na
-ata). É isso que faz o texto revisado de uma fala ATUALIZAR a regra existente em
-vez de criar outra ao lado — o comportamento que o teste de ciclo cobra. O custo
-é que inserir uma fala no meio desloca os ids seguintes. A identidade estável por
-âncora de fala é trabalho do plano da etapa `entender`; até lá, ata revisada deve
-preservar a ordem das falas."""
+IDENTIDADE: cada candidata sai com `origem_chave` — arquivo de insumo mais
+posição da fala — e sem id. Quem atribui o id é a etapa de gravação, que consulta o contador do
+projeto: `RN-001` gerado do zero colidia com a `RN-001` que o projeto real já
+tinha. A `origem_chave` é o que faz a revisão da mesma ata atualizar em vez de
+duplicar.
+
+Revisar é editar o mesmo insumo. Insumo novo é reunião nova, e gera candidatas
+novas — que é o comportamento correto.
+
+O custo remanescente: inserir uma fala no meio do insumo desloca a posição das
+seguintes, e elas viram candidatas novas. Insumo revisado deve preservar a ordem
+das falas."""
 from __future__ import annotations
 import re
 from typing import Dict, List
@@ -49,7 +55,7 @@ _MARCA_REGRA = re.compile(
     re.I)
 
 
-def regras(ata_estruturada: Dict) -> List[Dict]:
+def regras(ata_estruturada: Dict, origem: str = '') -> List[Dict]:
     """Candidatas a regra de negócio, cada uma com a citação que a originou.
 
     Candidata, não regra: quem decide se vira regra é gente. O que o código
@@ -59,7 +65,18 @@ def regras(ata_estruturada: Dict) -> List[Dict]:
         if not _MARCA_REGRA.search(fala['fala']):
             continue
         saida.append({
-            'id': f'RN-{len(saida) + 1:03d}',
+            # Chave de origem: o arquivo de insumo mais a posição da fala.
+            #
+            # O insumo, e não o título da ata: revisar uma transcrição é editar
+            # o mesmo arquivo, e chavear pelo título fazia "Reunião 14/08" e
+            # "Reunião 28/08" virarem origens diferentes — a revisão duplicava
+            # em vez de atualizar, que é exatamente o furo a impedir.
+            #
+            # O id definitivo vem do contador do projeto: posicional colide com
+            # o que o projeto já tem.
+            'origem_chave': f"{origem or ata_estruturada.get('titulo', '')}"
+                            f"#{len(saida) + 1}",
+            'id': '',
             'enunciado': fala['fala'],
             'citacao': fala['fala'],
             'fonte': f"{ata_estruturada.get('titulo', '')} — {fala['quem']}",
@@ -72,11 +89,12 @@ def regras(ata_estruturada: Dict) -> List[Dict]:
 def requisitos(lista_regras: List[Dict]) -> List[Dict]:
     """Um requisito por regra, vinculado à regra que o originou."""
     return [{
-        'id': f'REQ-{i:03d}',
+        'origem_chave': r.get('origem_chave', ''),
+        'id': '',
         'titulo': r['enunciado'],
         'deriva_de': r['id'],
         'fonte': r.get('fonte', ''),
-    } for i, r in enumerate(lista_regras, start=1)]
+    } for r in lista_regras]
 
 
 def cobertura(lista_requisitos: List[Dict], lista_regras: List[Dict]) -> Dict:

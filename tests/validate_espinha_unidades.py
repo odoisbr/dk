@@ -27,21 +27,36 @@ if 'Fulana' not in a.get('participantes', []):
 if not a.get('falas'):
     errors.append('ata sem falas')
 
-rs = espinha.regras(a)
+rs = espinha.regras(a, origem='0-apoio/reunioes/2026-08-14-convenios.md')
 if not rs:
     errors.append('nenhuma regra candidata extraída da ata')
 for r in rs:
-    if not r.get('id', '').startswith('RN-'):
-        errors.append(f'regra sem id no padrão RN-: {r.get("id")!r}')
+    # O id não sai daqui: quem atribui é a gravação, consultando o contador do
+    # projeto. Gerar id posicional colidia com o que o projeto real já tinha.
+    if r.get('id'):
+        errors.append(f'a espinha não deve atribuir id: {r["id"]!r}')
+    if not r.get('origem_chave', '').startswith('0-apoio/reunioes/'):
+        errors.append(f'regra sem âncora no insumo: {r.get("origem_chave")!r}')
     if not r.get('citacao'):
-        errors.append(f'{r.get("id")}: regra sem citação de origem')
+        errors.append(f'{r.get("origem_chave")}: regra sem citação de origem')
+
+# A mesma origem gera a mesma chave; origem diferente gera chave diferente.
+if [r['origem_chave'] for r in espinha.regras(a, origem='x.md')] == \
+   [r['origem_chave'] for r in rs]:
+    errors.append('insumos diferentes deveriam gerar chaves diferentes')
 
 reqs = espinha.requisitos(rs)
 for q in reqs:
-    if not q.get('id', '').startswith('REQ-'):
-        errors.append(f'requisito sem id no padrão REQ-: {q.get("id")!r}')
-    if not q.get('deriva_de'):
-        errors.append(f'{q.get("id")}: requisito sem vínculo com a regra de origem')
+    if q.get('id'):
+        errors.append(f'a espinha não deve atribuir id ao requisito: {q["id"]!r}')
+    if not q.get('origem_chave'):
+        errors.append('requisito sem âncora de origem')
+
+for i, r in enumerate(rs, 1):
+    r['id'] = f'RN-{i:03d}'
+for i, q in enumerate(reqs, 1):
+    q['id'] = f'REQ-{i:03d}'
+    q['deriva_de'] = rs[i - 1]['id']
 
 cob = espinha.cobertura(reqs, rs)
 if cob['regras_sem_requisito']:

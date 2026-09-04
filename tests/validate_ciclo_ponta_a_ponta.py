@@ -70,9 +70,12 @@ with tempfile.TemporaryDirectory() as d:
     if registry.carregar(projeto, 'regras') != regras_1:
         errors.append('asserção 3: o registro de regras mudou sem insumo novo')
 
-    # asserção 4: insumo alterado ATUALIZA o existente, não cria ao lado
-    revisao = projeto / '2026-08-28-convenios-revisao.md'
-    r3 = rodar(projeto, revisao)
+    # asserção 4: insumo alterado ATUALIZA o existente, não cria ao lado.
+    # Revisar é editar o MESMO arquivo — é assim que uma transcrição é corrigida.
+    primeiro.write_text(
+        (projeto / '2026-08-28-convenios-revisao.md').read_text(encoding='utf-8'),
+        encoding='utf-8')
+    r3 = rodar(projeto, primeiro)
     if r3.returncode != 0:
         errors.append(f'terceira execução falhou: {r3.stdout}{r3.stderr}')
     req_3 = registry.carregar(projeto, 'requisitos')

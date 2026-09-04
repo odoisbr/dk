@@ -100,8 +100,33 @@ def carregar(raiz: Path, nome: str) -> List[dict]:
     return _normalizar(nome, dados if isinstance(dados, list) else [])
 
 
+def para_esquema(nome: str, item: dict, alvo: str) -> dict:
+    """Dá ao item a forma do esquema de destino, antes de gravar.
+
+    Escrever `enunciado` e `citacao` dentro de um `business-rules.json` polui o
+    registro do projeto com campos que só o DK entende. O item sai daqui com os
+    nomes que o esquema de destino usa, e os apelidos internos ficam de fora."""
+    saida = dict(item)
+    if alvo != 'canonico':
+        return saida
+    if nome == 'regras':
+        saida.setdefault('title', saida.pop('enunciado', '') or saida.get('title', ''))
+        saida.setdefault('description', saida.pop('citacao', '')
+                         or saida.get('description', ''))
+        saida.setdefault('status', 'proposta')
+    elif nome == 'requisitos':
+        saida.setdefault('title', saida.pop('titulo', '') or saida.get('title', ''))
+        saida.setdefault('type', 'funcional')
+        saida.setdefault('status', 'proposta')
+    for interno in ('enunciado', 'citacao', 'titulo', 'fonte'):
+        saida.pop(interno, None)
+    return saida
+
+
 def gravar(raiz: Path, nome: str, itens: List[dict]) -> None:
-    io.atomic_json(caminho(raiz, nome), itens)
+    alvo = esquema(raiz)
+    io.atomic_json(caminho(raiz, nome),
+                   [para_esquema(nome, i, alvo) for i in itens])
 
 
 def upsert(itens: List[dict], novo: dict, chave: str = 'id') -> Tuple[List[dict], str]:
