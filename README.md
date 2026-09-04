@@ -14,11 +14,10 @@ Substitui o `sea-design-kit`. O de-para está em
 /plugin install dk@dk
 ```
 
-Para instalar a partir deste repositório, clone e aponte para a branch `dk`:
+Para instalar a partir deste repositório, clone:
 
 ```bash
-git clone git@gitlab.seatecnologia.com.br:design/sea-design-kit.git dk
-cd dk && git checkout dk
+git clone git@gitlab.seatecnologia.com.br:design/dk.git
 ```
 
 Depois `/plugin marketplace add <caminho do clone>` e `/plugin install dk@dk`.
