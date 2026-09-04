@@ -12,8 +12,55 @@ from shutil import which
 RAIZ = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RAIZ))
 
-from core import (conformidade, documento, entregaveis,  # noqa: E402
-                  espinha, leitura, mapa, ops, padrao, registry, scan)
+from core import (cobertura, conformidade, consistencia,  # noqa: E402
+                  documento, entregaveis, espinha, lacunas, leitura, mapa,
+                  ops, padrao, registry, scan)
+
+
+def cmd_entender(args) -> int:
+    projeto = Path(args.projeto).resolve()
+    cob = cobertura.matriz(projeto)
+    inc = consistencia.analisar(registry.carregar(projeto, 'regras'),
+                                registry.carregar(projeto, 'requisitos'))
+    lac = lacunas.analisar(projeto)
+
+    if args.json:
+        print(json.dumps({'cobertura': cob, 'consistencia': inc,
+                          'lacunas': lac}, ensure_ascii=False, indent=2))
+        return 0
+
+    print(f"cobertura: {cob['totais']['regras']} regras · "
+          f"{cob['totais']['requisitos']} requisitos")
+    for rotulo, chave in (('regra sem requisito', 'regras_sem_requisito'),
+                          ('requisito sem regra', 'requisitos_sem_regra'),
+                          ('requisito fora do entregável',
+                           'requisitos_sem_entregavel')):
+        if cob[chave]:
+            print(f"  {rotulo}: {', '.join(cob[chave])}")
+
+    if inc:
+        print(f'\nconsistência: {len(inc)} achado(s)')
+        for a in inc:
+            quem = ('código decidiu' if a['decidido_por'] == 'codigo'
+                    else 'candidato — a skill decide')
+            print(f"  {a['tipo']} [{a['urgencia']}] ({quem})")
+            print(f"    {a['evidencia']}")
+
+    abertas = [a for a in lac if a['status'] != 'COBERTO']
+    if abertas:
+        print(f'\nlacunas: {len(abertas)} de {len(lac)} itens do checklist')
+        ordem = {'CRITICA': 0, 'IMPORTANTE': 1, 'DESEJAVEL': 2}
+        for a in sorted(abertas, key=lambda x: ordem[x['prioridade']]):
+            print(f"  {a['id']} {a['tema']} [{a['status']}/{a['prioridade']}]")
+            print(f"    {a['pergunta']}")
+            print(f"    {a['evidencia']}")
+
+    criticas = [a for a in lac
+                if a['prioridade'] == 'CRITICA' and a['status'] == 'AUSENTE']
+    bloqueios = [a for a in inc if a['urgencia'] == 'BLOQUEIA-AVANCO']
+    print(f'\n{len(criticas)} lacuna(s) crítica(s) · '
+          f'{len(bloqueios)} bloqueio(s) de avanço')
+    return 0
 
 
 def _hoje() -> str:
@@ -258,6 +305,11 @@ def main() -> int:
                      help='tenta gerar PDF; ausência de renderizador é anunciada')
     ent.add_argument('--apply', action='store_true')
     ent.set_defaults(func=cmd_entregar)
+
+    und = sub.add_parser('entender', help='cobertura, consistência e lacunas')
+    und.add_argument('--projeto', required=True)
+    und.add_argument('--json', action='store_true')
+    und.set_defaults(func=cmd_entender)
 
     args = p.parse_args()
     return args.func(args)
