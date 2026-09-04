@@ -32,7 +32,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 1. Leia `registry/regras.json`, `registry/requisitos.json` e as decisões registradas.
 2. Para cada afirmação relevante, classifique nas três colunas e **cite a fonte** da
    que for certeza.
-3. Cruze com o relatório de `bin/dk entender`: item marcado como lacuna crítica quase
+3. Cruze com o relatório de `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender`: item marcado como lacuna crítica quase
    sempre é dúvida que ainda não foi nomeada.
 
 ## Resposta

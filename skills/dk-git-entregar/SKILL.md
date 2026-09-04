@@ -37,11 +37,11 @@ MR novo sai impressa — o trabalho não fica preso na ferramenta.
 
 ## Procedimento
 
-1. `bin/dk git --projeto <raiz> --branch "<o pedido>"` classifica e nomeia; com
+1. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" git --projeto <raiz> --branch "<o pedido>"` classifica e nomeia; com
    `--apply`, cria e ativa.
-2. `bin/dk git --projeto <raiz> --commit "<tipo>: <o que mudou>" --arquivo <a> --arquivo <b>`
+2. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" git --projeto <raiz> --commit "<tipo>: <o que mudou>" --arquivo <a> --arquivo <b>`
    simula; com `--apply`, commita **só** esses arquivos.
-3. `bin/dk git --projeto <raiz> --push --titulo "<título do MR>" --alvo main`
+3. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" git --projeto <raiz> --push --titulo "<título do MR>" --alvo main`
    mostra o comando; com `--apply`, envia e abre o MR.
 
 ## Resposta

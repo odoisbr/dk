@@ -31,7 +31,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## Procedimento
 
-1. Rode `bin/dk entender --projeto <raiz> --json` e leia o bloco `lacunas`.
+1. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender --projeto <raiz> --json` e leia o bloco `lacunas`.
 2. O comando classifica por sinal textual. Onde ele marcou `PARCIAL`, confirme lendo o
    registro: sinal isolado pode ser menção de passagem.
 3. Para cada `AUSENTE` crítica, escreva a **pergunta literal** a fazer ao cliente. É ela

@@ -38,7 +38,7 @@ Seção que não se aplica é registrada como não aplicável, não omitida.
 
 1. Leia `registry/regras.json` e a ata anterior, se houver.
 2. Monte o corpo em Markdown com as sete seções.
-3. Rode `bin/dk entregar --projeto <raiz> --tipo ata --corpo <arquivo.md>` em simulação.
+3. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entregar --projeto <raiz> --tipo ata --corpo <arquivo.md>` em simulação.
    O comando reprova o que viola o contrato, citando a regra.
 4. Corrija o que ele apontar e aplique com `--apply`.
 

@@ -34,8 +34,8 @@ está identificado.
 
 ## Procedimento
 
-1. `bin/dk git --projeto <raiz>` para ver o que falta.
-2. `bin/dk git --projeto <raiz> --configurar --nome <n> --email <e> --remoto <url>`
+1. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" git --projeto <raiz>` para ver o que falta.
+2. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" git --projeto <raiz> --configurar --nome <n> --email <e> --remoto <url>`
    simula e lista as mudanças.
 3. `--apply` aplica. Sem repositório, o `--configurar --apply` também dá `git init`.
 

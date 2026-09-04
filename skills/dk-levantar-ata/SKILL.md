@@ -18,7 +18,7 @@ Um arquivo de insumo em `0-apoio/reunioes/`.
 
 1. Leia a ata anterior, se existir, antes de qualquer proposta.
 2. Rode a estruturação determinística:
-   `bin/dk levantar --projeto <raiz> --insumo <arquivo>`
+   `"${CLAUDE_PLUGIN_ROOT}/bin/dk" levantar --projeto <raiz> --insumo <arquivo>`
 3. Revise o que o comando extraiu: participante mal atribuído e fala truncada são
    erros de forma que você corrige; o conteúdo da fala não se altera.
 4. Aplique com `--apply` somente após a simulação estar correta.

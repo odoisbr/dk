@@ -12,7 +12,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## Procedimento
 
-1. Rode `bin/dk audit --projeto <raiz> --json` e leia o bloco `conformidade`.
+1. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" audit --projeto <raiz> --json` e leia o bloco `conformidade`.
 2. Para cada achado, confirme a evidência abrindo só o arquivo citado.
 3. Classifique e proponha o próximo passo: qual artefato falta, qual está quebrado.
 

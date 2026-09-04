@@ -12,7 +12,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## Procedimento
 
-1. `bin/dk git --projeto <raiz>` diz o estado: branch, pendências, projeto no
+1. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" git --projeto <raiz>` diz o estado: branch, pendências, projeto no
    GitLab e o que falta configurar. Comece sempre por aí.
 2. Falta configuração ou remoto? É `dk-git-configurar`.
 3. É commit ou merge request? É `dk-git-entregar`.

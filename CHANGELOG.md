@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.2 — 04/09/2026
+
+Correção que só apareceu na primeira instalação de verdade. As 26 skills e
+agentes chamavam a CLI por caminho relativo — `bin/dk`. Instalado, o plugin roda
+com o diretório de trabalho no projeto do cliente, onde esse caminho não existe:
+funcionava no desenvolvimento do próprio plugin e quebraria em todo uso real.
+
+- As 35 chamadas passam a usar `${CLAUDE_PLUGIN_ROOT}/bin/dk`.
+- Novo validador `tests/validate_caminho_do_cli.py`, no portão de release:
+  recusa chamada relativa, exige o bit de execução e roda a CLI a partir de
+  outro diretório para provar que ela resolve a própria raiz.
+
 ## 1.0.1 — 04/09/2026
 
 Correção de empacotamento. A 1.0.0 foi marcada sem o `marketplace.json`, e sem

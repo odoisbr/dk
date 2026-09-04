@@ -12,7 +12,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## O que o código conclui e o que sobra para você
 
-`bin/dk entender --projeto <raiz> --inception` cobra a agenda contra
+`"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender --projeto <raiz> --inception` cobra a agenda contra
 `registry/lean-inception.json`: quais das onze atividades existem, quais campos
 obrigatórios faltam e qual item não cita fonte. Isso é estrutura, e sai
 `decidido_por: codigo`.
@@ -72,7 +72,7 @@ que a equipe assina. Os seis campos e o que invalida cada um:
 
 ## Procedimento
 
-1. `bin/dk entender --projeto <raiz> --inception` para ver onde a agenda está.
+1. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender --projeto <raiz> --inception` para ver onde a agenda está.
 2. Conduza a atividade que falta, na ordem da agenda — a 10 não acontece antes
    das três revisões, e a 11 não acontece antes da 10.
 3. Registre em `registry/lean-inception.json` com `tipo`, `titulo`, `conteudo`,

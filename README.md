@@ -30,13 +30,17 @@ enumera as skills dela e um comando determinístico na CLI.
 
 | Etapa | Comando | O que entrega |
 |---|---|---|
-| audit | `bin/dk audit --projeto <raiz>` | mapa do projeto, conformidade e `llms.txt` gerado |
-| levantar | `bin/dk levantar --projeto <raiz> --insumo <ata>` | regras de negócio e requisitos a partir da reunião |
-| entender | `bin/dk entender --projeto <raiz>` | cobertura, consistência, lacunas, Lean Inception e similares |
-| entregar | `bin/dk entregar --projeto <raiz> --tipo <t>` | documento, apresentação, e-mail e manual formatados |
-| prototipar | `bin/dk prototipar --projeto <raiz>` | changeset com alvo declarado, componentes e tokens |
-| handoff | `bin/dk handoff --projeto <raiz>` | portão de prontidão, matriz de rastreabilidade e pacote |
-| git | `bin/dk git --projeto <raiz>` | git local, projeto no GitLab, commit e merge request |
+| audit | `dk audit --projeto <raiz>` | mapa do projeto, conformidade e `llms.txt` gerado |
+| levantar | `dk levantar --projeto <raiz> --insumo <ata>` | regras de negócio e requisitos a partir da reunião |
+| entender | `dk entender --projeto <raiz>` | cobertura, consistência, lacunas, Lean Inception e similares |
+| entregar | `dk entregar --projeto <raiz> --tipo <t>` | documento, apresentação, e-mail e manual formatados |
+| prototipar | `dk prototipar --projeto <raiz>` | changeset com alvo declarado, componentes e tokens |
+| handoff | `dk handoff --projeto <raiz>` | portão de prontidão, matriz de rastreabilidade e pacote |
+| git | `dk git --projeto <raiz>` | git local, projeto no GitLab, commit e merge request |
+
+Instalado, a CLI vive em `${CLAUDE_PLUGIN_ROOT}/bin/dk`, e é assim que as skills
+a chamam — o diretório de trabalho é sempre o projeto do cliente, não o plugin.
+Trabalhando dentro deste repositório, `bin/dk` resolve igual.
 
 Na conversa, nada disso precisa ser decorado: diga o que quer, e a porta `dk`
 escolhe a etapa.

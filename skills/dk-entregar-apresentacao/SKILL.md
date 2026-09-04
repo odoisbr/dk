@@ -61,7 +61,7 @@ rodapé. O comando avisa slide a slide; quebrar em mais slides é decisão sua, 
 ## Procedimento
 
 1. Monte o JSON com `meta` e `slides`.
-2. `bin/dk entregar --projeto <raiz> --tipo apresentacao --corpo <arquivo.json>`.
+2. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entregar --projeto <raiz> --tipo apresentacao --corpo <arquivo.json>`.
 3. Leia os avisos de overflow e quebre o que passou.
 4. Aplique com `--apply`.
 

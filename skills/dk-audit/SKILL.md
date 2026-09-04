@@ -12,7 +12,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## Procedimento
 
-1. Rode `bin/dk audit --projeto <raiz>` em simulação. **Não leia arquivo antes disso**:
+1. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" audit --projeto <raiz>` em simulação. **Não leia arquivo antes disso**:
    o mapa é que diz o que vale abrir.
 2. Leia o mapa. Só então abra os arquivos marcados como ALTA, e apenas os que a
    pergunta do usuário exige.

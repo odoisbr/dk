@@ -36,7 +36,7 @@ Variação e estado precisam aparecer nas quatro, com o mesmo nome:
 | JS | `setVariant("info")` | `setState("loading")` |
 | YAML | `variants: [{id: info, selector}]` | `states: [{id: loading, selector}]` |
 
-Um lado sem os outros é divergência, e `bin/dk prototipar --verificar` aponta qual.
+Um lado sem os outros é divergência, e `"${CLAUDE_PLUGIN_ROOT}/bin/dk" prototipar --verificar` aponta qual.
 Conferir isso à mão em vinte componentes é trabalho que ninguém faz duas vezes.
 
 ## Regras
@@ -51,7 +51,7 @@ Conferir isso à mão em vinte componentes é trabalho que ninguém faz duas vez
 
 ## Procedimento
 
-1. `bin/dk prototipar --projeto <raiz> --verificar` antes de mexer.
+1. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" prototipar --projeto <raiz> --verificar` antes de mexer.
 2. Abra o changeset com o caminho do componente como `--alvo`.
 3. Altere as quatro camadas juntas. Alterar uma só é o que cria a divergência.
 4. Verifique de novo: achado novo é regressão do seu ajuste.

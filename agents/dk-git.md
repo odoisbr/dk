@@ -32,7 +32,7 @@ aconselhar.
 
 ## Procedimento
 
-1. `bin/dk git --projeto <raiz>` antes de tudo: branch, pendências, projeto no
+1. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" git --projeto <raiz>` antes de tudo: branch, pendências, projeto no
    GitLab e o que falta configurar.
 2. Falta configuração? Resolva em `dk-git-configurar` antes de tentar commitar.
 3. Em branch protegida, crie a branch de trabalho a partir do texto do pedido.

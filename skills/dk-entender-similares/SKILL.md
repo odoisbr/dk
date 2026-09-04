@@ -23,7 +23,7 @@ pergunta meses depois por que uma decisão foi tomada.
 
 ## O que o código conclui
 
-`bin/dk entender --projeto <raiz> --similares` cobra procedência:
+`"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender --projeto <raiz> --similares` cobra procedência:
 
 | Achado | O que ele viu |
 |---|---|
@@ -67,7 +67,7 @@ intermediária.
 1. Registre as fontes em `registry/sources.json` com `type` igual a
    `referencia`, `concorrente` ou `antirreferencia`.
 2. Observe por dimensão e registre cada achado em `registry/evidence.json`.
-3. `bin/dk entender --projeto <raiz> --similares` cobra a procedência e emite a
+3. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender --projeto <raiz> --similares` cobra a procedência e emite a
    matriz.
 4. Traduza os padrões em princípio para o projeto — e o que virar compromisso
    vira requisito no registro, com a fonte citada.

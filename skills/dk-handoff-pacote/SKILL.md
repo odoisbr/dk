@@ -25,11 +25,11 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## Procedimento
 
-1. Confirme o gate: `bin/dk handoff --projeto <raiz>`. Sem gate aberto não há pacote.
+1. Confirme o gate: `"${CLAUDE_PLUGIN_ROOT}/bin/dk" handoff --projeto <raiz>`. Sem gate aberto não há pacote.
 2. Monte o corpo em Markdown com as oito seções.
 3. Use `{{RASTREABILIDADE}}` em vez de escrever a matriz à mão — ela sai do registro,
    e escrita à mão diverge no dia seguinte.
-4. `bin/dk handoff --projeto <raiz> --corpo <arquivo.md>` para simular, `--apply` para gravar.
+4. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" handoff --projeto <raiz> --corpo <arquivo.md>` para simular, `--apply` para gravar.
 
 ## Regras
 

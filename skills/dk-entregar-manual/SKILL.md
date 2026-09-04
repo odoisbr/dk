@@ -40,7 +40,7 @@ isso, o usuário reporta como defeito o que é escopo de outra fase.
 1. Leia `registry/requisitos.json` e o handoff, se houver: o manual descreve o que foi
    entregue, e isso está registrado.
 2. Monte o corpo com as dez seções.
-3. `bin/dk entregar --projeto <raiz> --tipo manual --corpo <arquivo.md>` para simular.
+3. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entregar --projeto <raiz> --tipo manual --corpo <arquivo.md>` para simular.
 4. Aplique com `--apply`.
 
 ## Resposta

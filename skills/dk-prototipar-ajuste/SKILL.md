@@ -30,8 +30,8 @@ Por isso:
 ## Procedimento
 
 ```bash
-bin/dk prototipar --projeto <raiz> --verificar
-bin/dk prototipar --projeto <raiz> --changeset CS-00N \
+"${CLAUDE_PLUGIN_ROOT}/bin/dk" prototipar --projeto <raiz> --verificar
+"${CLAUDE_PLUGIN_ROOT}/bin/dk" prototipar --projeto <raiz> --changeset CS-00N \
   --titulo "<o pedido, em uma frase>" \
   --origem "<quem pediu, quando, onde>" \
   --alvo <caminho> [--alvo <caminho>...]

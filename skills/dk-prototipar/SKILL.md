@@ -12,7 +12,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## Procedimento
 
-1. Rode `bin/dk prototipar --projeto <raiz> --verificar` **antes** de qualquer mudança.
+1. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" prototipar --projeto <raiz> --verificar` **antes** de qualquer mudança.
    Violação de padrão que já existe não é culpa do seu ajuste — e você precisa saber
    disso antes, para não levar a culpa nem consertar sem pedir.
 2. Traduza o pedido em um alvo: quais caminhos exatamente mudam.

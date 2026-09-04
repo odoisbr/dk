@@ -12,7 +12,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## Procedimento
 
-1. Rode `bin/dk handoff --projeto <raiz>`. Ele mostra o gate item a item.
+1. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" handoff --projeto <raiz>`. Ele mostra o gate item a item.
 2. Item bloqueado traz a etapa que resolve e o comando. Vá lá antes de insistir aqui.
 3. Com o gate aberto, despache para `agents/dk-handoff.md`.
 

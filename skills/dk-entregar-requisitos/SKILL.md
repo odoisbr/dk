@@ -33,7 +33,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
    a gravação é recusada pelo mecanismo de escrita.
 2. Agrupe os requisitos em épicos e features. Requisito que não couber em nenhum épico é
    sinal de escopo faltando — reporte, não force.
-3. Rode `bin/dk entregar --projeto <raiz> --tipo requisitos --corpo <arquivo.md>` em
+3. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entregar --projeto <raiz> --tipo requisitos --corpo <arquivo.md>` em
    simulação e corrija o que ele apontar.
 4. Aplique com `--apply`.
 

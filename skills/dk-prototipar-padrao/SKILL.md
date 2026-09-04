@@ -26,7 +26,7 @@ ligação com o design system se perde em silêncio. É o começo do "foge do pa
 
 ## Procedimento
 
-1. Rode `bin/dk prototipar --projeto <raiz> --verificar`.
+1. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" prototipar --projeto <raiz> --verificar`.
 2. Para cada achado, abra **só** o arquivo citado e confirme.
 3. Proponha a correção pelo modelo canônico: valor cru vira token; framework concorrente
    sai; build desatualizado roda.

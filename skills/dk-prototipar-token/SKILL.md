@@ -42,7 +42,7 @@ tela que ninguém abriu na demo. O verificador pega por comparação de árvore.
 
 ## Procedimento
 
-1. `bin/dk prototipar --projeto <raiz> --verificar` lista folha malformada e referência
+1. `"${CLAUDE_PLUGIN_ROOT}/bin/dk" prototipar --projeto <raiz> --verificar` lista folha malformada e referência
    quebrada, nomeando o caminho de cada token.
 2. Para referência quebrada: ou o token de destino nasce, ou a referência aponta para
    um que existe. Apagar a folha que referencia é a última opção — ela existe porque

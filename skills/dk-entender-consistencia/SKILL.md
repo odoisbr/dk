@@ -29,7 +29,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## Procedimento
 
-1. Rode `bin/dk entender --projeto <raiz> --json` e leia o bloco `consistencia`.
+1. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender --projeto <raiz> --json` e leia o bloco `consistencia`.
 2. Achado com `decidido_por: codigo` é conclusão — reporte.
 3. Achado com `decidido_por: skill` é **candidato**. Abra os requisitos citados e
    julgue. Candidato que você descartar vira registro com motivo, não desaparece.

@@ -12,10 +12,10 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 
 ## Procedimento
 
-1. Rode `bin/dk entender --projeto <raiz>`. Ele é só leitura: não grava nada.
+1. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender --projeto <raiz>`. Ele é só leitura: não grava nada.
 2. Leia o relatório antes de abrir qualquer arquivo. Ele já diz onde olhar.
 3. Escolha a skill da etapa pela natureza do que apareceu.
-4. Demanda ainda sem recorte de MVP: `bin/dk entender --projeto <raiz> --inception`
+4. Demanda ainda sem recorte de MVP: `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender --projeto <raiz> --inception`
    cobra a agenda da Lean Inception e a skill `dk-entender-inception` conduz.
 
 ## Regras

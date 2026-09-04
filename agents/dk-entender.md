@@ -27,7 +27,7 @@ antes de a próxima etapa começar.
 
 ## Procedimento
 
-1. Rode `bin/dk entender --projeto <raiz>` e leia o relatório.
+1. Rode `"${CLAUDE_PLUGIN_ROOT}/bin/dk" entender --projeto <raiz>` e leia o relatório.
 2. Escolha a skill pela natureza do que apareceu: falta de informação vai para lacunas;
    informação que não fecha vai para consistência; informação sem fonte vai para CSD;
    demanda ainda sem recorte de MVP vai para inception.

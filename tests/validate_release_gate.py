@@ -13,6 +13,7 @@ RAIZ = Path(__file__).resolve().parents[1]
 ITENS = [
     ('teste E2E da espinha verde', 'tests/validate_ciclo_ponta_a_ponta.py'),
     ('hooks ativos e verificados', 'tests/validate_hooks_ativos.py'),
+    ('a CLI é chamada por caminho do plugin', 'tests/validate_caminho_do_cli.py'),
     ('escrita atômica', 'tests/validate_escrita_atomica.py'),
     ('dry-run e escopo declarado', 'tests/validate_dry_run_e_escopo.py'),
     ('ler antes de escrever', 'tests/validate_ler_antes_de_escrever.py'),

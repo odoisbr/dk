@@ -37,7 +37,7 @@ Responde segundo o [contrato de resposta](../../docs/contrato-de-resposta.md).
 ## Procedimento
 
 1. Classifique a dúvida em uma das oito classes.
-2. Confirme no registro: a informação existe? `bin/dk handoff --projeto <raiz> --matriz`
+2. Confirme no registro: a informação existe? `"${CLAUDE_PLUGIN_ROOT}/bin/dk" handoff --projeto <raiz> --matriz`
    mostra o que está rastreado.
 3. Se existe e não chegou: defeito documental — corrija o pacote.
 4. Se não existe: devolva para a etapa da tabela e registre lá.
