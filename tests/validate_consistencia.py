@@ -14,10 +14,10 @@ from core import consistencia  # noqa: E402
 
 errors = []
 
-if len(consistencia.TIPOS) != 6:
-    errors.append(f'esperados 6 tipos, há {len(consistencia.TIPOS)}')
+if len(consistencia.TIPOS) != 7:
+    errors.append(f'esperados 7 tipos, há {len(consistencia.TIPOS)}')
 for nome in ('CONFLITO', 'DUPLICATA', 'ORFAO', 'REFERENCIA-INDEFINIDA',
-             'NF-SEM-CRITERIO', 'REGRA-CIRCULAR'):
+             'NF-SEM-CRITERIO', 'REGRA-CIRCULAR', 'TITULO-TRUNCADO'):
     if nome not in consistencia.TIPOS:
         errors.append(f'tipo {nome} ausente')
 
@@ -80,6 +80,32 @@ for a in achados:
 for a in [x for x in achados if x['tipo'] == 'CONFLITO']:
     if a['decidido_por'] != 'skill':
         errors.append('conflito semântico não pode ser decidido por código')
+
+
+# Esquema canônico: a âncora é `sources`, não `deriva_de`. A versão anterior
+# marcou os 86 requisitos de um projeto real como órfãos.
+canonico = consistencia.analisar(
+    [{'id': 'RN-001', 'title': 'validade por subcategoria', 'sources': ['SRC-001']}],
+    [{'id': 'RF-001', 'title': 'o gestor altera a categoria do titular',
+      'sources': ['SRC-015']}])
+if 'ORFAO' in {a['tipo'] for a in canonico}:
+    errors.append('requisito com fonte declarada não é órfão')
+
+# Título truncado: comparar pelo rótulo cortado acusa duplicata que não existe.
+truncados = [
+    {'id': 'RF-024', 'title': 'O beneficiário (cat',
+     'description': 'O beneficiário (cat. 40) deve poder incluir dependentes',
+     'sources': ['SRC-001']},
+    {'id': 'RF-025', 'title': 'O beneficiário (cat',
+     'description': 'O beneficiário (cat. 40) deve poder remover dependentes',
+     'sources': ['SRC-001']},
+]
+r = consistencia.analisar([], truncados)
+tipos_t = {a['tipo'] for a in r}
+if 'TITULO-TRUNCADO' not in tipos_t:
+    errors.append('título cortado deveria ser detectado')
+if 'DUPLICATA' in tipos_t:
+    errors.append('a comparação usou o rótulo cortado e acusou duplicata falsa')
 
 limpo = consistencia.analisar(
     [{'id': 'RN-001', 'enunciado': 'x'}],

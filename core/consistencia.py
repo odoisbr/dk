@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Os seis tipos de inconsistência entre requisitos, portados do community.
+"""Os seis tipos de inconsistência do community, mais um que a realidade acrescentou.
+
+Os seis vieram do `validar-consistencia-requisitos`. O sétimo — TÍTULO-TRUNCADO —
+saiu de rodar contra um projeto vivo: 40 de 86 requisitos tinham o rótulo cortado,
+e cinco ficaram com o mesmo prefixo. Um rótulo cortado engana a leitura humana e
+engana comparação automática.
 
 A divisão de trabalho é explícita em cada achado, no campo `decidido_por`:
 
@@ -20,6 +25,7 @@ TIPOS = {
     'REFERENCIA-INDEFINIDA': 'menciona entidade não definida em lugar nenhum',
     'NF-SEM-CRITERIO': 'requisito não-funcional sem critério mensurável',
     'REGRA-CIRCULAR': 'regra A depende de B, que depende de A',
+    'TITULO-TRUNCADO': 'o rótulo do item está cortado e não representa o conteúdo',
 }
 
 _VAGOS = ('rápido', 'rapido', 'rápida', 'rapida', 'intuitiv', 'amigável',
@@ -53,11 +59,59 @@ def _tokens(texto: str) -> set:
             if t not in _PARADA}
 
 
+# Num requisito, o verbo é o requisito. "incluir dependentes" e "remover
+# dependentes" compartilham quase todos os substantivos e são opostos — tratar
+# isso como duplicata é o erro mais fácil de cometer numa lista de CRUD.
+_ACOES = {
+    'incluir', 'inserir', 'adicionar', 'cadastrar', 'criar', 'registrar',
+    'remover', 'excluir', 'apagar', 'deletar', 'cancelar', 'revogar',
+    'editar', 'alterar', 'atualizar', 'modificar', 'corrigir',
+    'consultar', 'listar', 'visualizar', 'exibir', 'buscar', 'pesquisar',
+    'aprovar', 'rejeitar', 'reprovar', 'validar', 'bloquear', 'desbloquear',
+    'renovar', 'importar', 'exportar', 'gerar', 'imprimir', 'enviar',
+}
+
+
+def _acoes(texto: str) -> set:
+    return _tokens(texto) & {_normaliza(a) for a in _ACOES}
+
+
 def _similaridade(a: str, b: str) -> float:
     ta, tb = _tokens(a), _tokens(b)
     if not ta or not tb:
         return 0.0
+    # Ações diferentes ⇒ requisitos diferentes, por mais que o resto coincida.
+    aa, ab = _acoes(a), _acoes(b)
+    if aa and ab and not (aa & ab):
+        return 0.0
     return len(ta & tb) / len(ta | tb)
+
+
+def _texto(item: dict) -> str:
+    """O texto mais completo que o item tem.
+
+    Num projeto real, 40 de 86 requisitos tinham `title` truncado — cortado no
+    ponto de "cat. 40" — e cinco deles ficaram com o mesmo prefixo. Comparar por
+    `title` acusou cinco duplicatas que não existiam; a `description` mostrava
+    cinco requisitos distintos. Compare pelo campo mais completo, sempre."""
+    for campo in ('description', 'descricao', 'titulo', 'title', 'enunciado'):
+        valor = (item.get(campo) or '').strip()
+        if valor:
+            return valor
+    return ''
+
+
+def _truncado(item: dict) -> bool:
+    """`title` visivelmente cortado: termina em reticência, ou a `description`
+    é bem maior e começa pelo mesmo texto."""
+    titulo = (item.get('title') or item.get('titulo') or '').strip()
+    descricao = (item.get('description') or item.get('descricao') or '').strip()
+    if not titulo:
+        return False
+    if titulo.endswith(('…', '...')):
+        return True
+    return bool(descricao) and descricao.startswith(titulo) \
+        and len(descricao) > len(titulo) + 20
 
 
 def _achado(tipo: str, itens: List[str], evidencia: str, urgencia: str,
@@ -76,30 +130,57 @@ def analisar(regras: List[dict], requisitos: List[dict]) -> List[Dict]:
     achados = []
     ids_regras = {r['id'] for r in regras}
 
-    # Tipo 3 — ÓRFÃO
+    # Tipo 3 — ÓRFÃO: requisito sem âncora rastreável.
+    #
+    # A âncora depende do esquema, e a regra vale nos dois sem precisar saber
+    # qual é. No canônico a âncora é `sources` — requisito e regra são irmãos,
+    # ambos presos ao documento de origem. No esquema do DK é `deriva_de`.
+    # Ter qualquer uma das duas basta; não ter nenhuma é que é órfão.
+    #
+    # A versão anterior olhava só `deriva_de` e marcou os 86 requisitos de um
+    # projeto real como órfãos — todos tinham fonte.
     for q in requisitos:
         origem = q.get('deriva_de')
-        if not origem or origem not in ids_regras:
-            achados.append(_achado(
-                'ORFAO', [q['id']],
-                f"{q['id']} aponta para {origem!r}, que não existe em regras",
-                'RESOLVE-ANTES-DO-DESIGN', 'codigo'))
+        fontes = q.get('sources') or []
+        if origem and origem in ids_regras:
+            continue
+        if fontes:
+            continue
+        if origem:
+            evidencia = (f"{q['id']} aponta para {origem!r}, que não existe em "
+                         'regras, e não declara fonte')
+        else:
+            evidencia = (f"{q['id']} não tem vínculo com regra nem fonte "
+                         'declarada — nada diz de onde ele veio')
+        achados.append(_achado('ORFAO', [q['id']], evidencia,
+                               'RESOLVE-ANTES-DO-DESIGN', 'codigo'))
+
+    # TÍTULO-TRUNCADO: rótulo cortado engana leitura humana e comparação automática
+    truncados = [q['id'] for q in requisitos if _truncado(q)]
+    if truncados:
+        achados.append(_achado(
+            'TITULO-TRUNCADO', truncados,
+            f'{len(truncados)} requisito(s) com título cortado, entre eles '
+            + ', '.join(truncados[:5])
+            + ' — o rótulo não representa o conteúdo, e quem lê a lista não vê '
+              'o requisito inteiro',
+            'PODE-POSTERGAR', 'codigo'))
 
     # Tipo 2 — DUPLICATA
     for i in range(len(requisitos)):
         for j in range(i + 1, len(requisitos)):
             a, b = requisitos[i], requisitos[j]
-            s = _similaridade(a.get('titulo', ''), b.get('titulo', ''))
+            s = _similaridade(_texto(a), _texto(b))
             if s >= 0.6:
                 achados.append(_achado(
                     'DUPLICATA', [a['id'], b['id']],
                     f"similaridade {s:.0%} entre {a['id']} e {b['id']}: "
-                    f"{a.get('titulo', '')[:40]!r} × {b.get('titulo', '')[:40]!r}",
+                    f"{_texto(a)[:45]!r} × {_texto(b)[:45]!r}",
                     'RESOLVE-ANTES-DO-DESIGN', 'codigo'))
 
     # Tipo 5 — NF-SEM-CRITÉRIO
     for q in requisitos:
-        titulo = q.get('titulo', '')
+        titulo = _texto(q)
         baixo = titulo.lower()
         vagos = [v for v in _VAGOS if v in baixo]
         if vagos and not _MENSURAVEL.search(titulo):
@@ -114,12 +195,11 @@ def analisar(regras: List[dict], requisitos: List[dict]) -> List[Dict]:
     achados += _ciclos(grafo)
 
     # Tipo 4 — REFERÊNCIA-INDEFINIDA (parcial: o código acha, a skill julga)
-    definidos = ' '.join(
-        [r.get('enunciado', '') for r in regras]
-        + [q.get('titulo', '') for q in requisitos])
+    definidos = ' '.join([_texto(r) for r in regras]
+                         + [_texto(q) for q in requisitos])
     for q in requisitos:
         for nome in re.findall(r'\b(?:Portal|Sistema|Módulo|Modulo|API)\s+'
-                               r'([A-ZÀ-Ú][\wÀ-ú]+)', q.get('titulo', '')):
+                               r'([A-ZÀ-Ú][\wÀ-ú]+)', _texto(q)):
             if definidos.count(nome) <= 1:
                 achados.append(_achado(
                     'REFERENCIA-INDEFINIDA', [q['id']],
@@ -131,7 +211,7 @@ def analisar(regras: List[dict], requisitos: List[dict]) -> List[Dict]:
     for i in range(len(requisitos)):
         for j in range(i + 1, len(requisitos)):
             a, b = requisitos[i], requisitos[j]
-            s = _similaridade(a.get('titulo', ''), b.get('titulo', ''))
+            s = _similaridade(_texto(a), _texto(b))
             if 0.3 <= s < 0.6 and a.get('deriva_de') != b.get('deriva_de'):
                 achados.append(_achado(
                     'CONFLITO', [a['id'], b['id']],
