@@ -28,6 +28,10 @@ ITENS = [
     ('contrato dos entregáveis', 'tests/validate_entregaveis.py'),
     ('padrão de projeto', 'tests/validate_padrao.py'),
     ('tokens da marca', 'tests/validate_marca.py'),
+    ('o furo aparece (ciclo entender)', 'tests/validate_ciclo_entender.py'),
+    ('seis tipos de inconsistência', 'tests/validate_consistencia.py'),
+    ('lacunas contra checklist', 'tests/validate_lacunas.py'),
+    ('matriz de cobertura', 'tests/validate_cobertura.py'),
 ]
 
 errors = []
