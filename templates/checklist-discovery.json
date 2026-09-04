@@ -1,0 +1,62 @@
+{
+  "versao": 1,
+  "nota": "Checklist de discovery. Lacuna só existe com âncora aqui: 'seria bom saber' não vira achado. Editável sem tocar em código.",
+  "itens": [
+    {
+      "id": "CL-01",
+      "tema": "Contexto de negócio",
+      "pergunta": "Quais os objetivos estratégicos, KPIs e desafios do cliente?",
+      "prioridade": "CRITICA",
+      "sinais": ["objetivo", "kpi", "meta", "indicador", "estratég"]
+    },
+    {
+      "id": "CL-02",
+      "tema": "Público-alvo",
+      "pergunta": "Quais os segmentos, personas ou perfis de usuário?",
+      "prioridade": "CRITICA",
+      "sinais": ["usuário", "usuario", "persona", "perfil", "público", "publico", "segmento"]
+    },
+    {
+      "id": "CL-03",
+      "tema": "Escopo",
+      "pergunta": "O que está dentro e o que está fora do escopo?",
+      "prioridade": "CRITICA",
+      "sinais": ["escopo", "fora de escopo", "não contempla", "nao contempla"]
+    },
+    {
+      "id": "CL-04",
+      "tema": "Restrições",
+      "pergunta": "Quais as restrições de prazo, orçamento, tecnologia ou legais?",
+      "prioridade": "IMPORTANTE",
+      "sinais": ["restri", "prazo", "orçamento", "orcamento", "limita", "legal", "lgpd"]
+    },
+    {
+      "id": "CL-05",
+      "tema": "Integrações",
+      "pergunta": "Com que sistemas o produto precisa conversar?",
+      "prioridade": "IMPORTANTE",
+      "sinais": ["integra", "api", "sistema externo", "portal", "sincroniz"]
+    },
+    {
+      "id": "CL-06",
+      "tema": "Dados",
+      "pergunta": "Que dados existem, de onde vêm e há migração?",
+      "prioridade": "IMPORTANTE",
+      "sinais": ["dado", "migra", "base", "cadastro", "importa"]
+    },
+    {
+      "id": "CL-07",
+      "tema": "Permissões",
+      "pergunta": "Quem pode fazer o quê? Há perfis de acesso?",
+      "prioridade": "IMPORTANTE",
+      "sinais": ["permiss", "perfil de acesso", "papel", "gestor", "administrador", "autoriza"]
+    },
+    {
+      "id": "CL-08",
+      "tema": "Estado atual",
+      "pergunta": "Existe solução em uso hoje? O que ela faz e o que falha?",
+      "prioridade": "DESEJAVEL",
+      "sinais": ["hoje", "atualmente", "sistema atual", "legado", "planilha"]
+    }
+  ]
+}
