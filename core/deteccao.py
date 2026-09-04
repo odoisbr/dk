@@ -120,6 +120,17 @@ def detectar(raiz: Path, entradas: List[dict]) -> Dict:
     if '.claude-plugin/plugin.json' in caminhos:
         tipo = 'plugin'
         evidencias.append('.claude-plugin/plugin.json: plugin de Claude Code')
+    elif 'projeto.yml' in caminhos:
+        # Projeto de design no padrão da casa. O sinal é o manifesto de projeto na
+        # raiz, não a stack — um projeto de design pode não ter código nenhum, e
+        # ainda assim é o tipo mais importante para o DK reconhecer.
+        tipo = 'design'
+        evidencias.append('projeto.yml: projeto de design no padrão da casa')
+        registros = sorted(c for c in caminhos if c.startswith('registry/')
+                           and c.endswith('.json'))
+        if registros:
+            evidencias.append(
+                f'{registros[0]}: {len(registros)} registro(s) em registry/')
     elif tipo == 'indefinido':
         tem_ui = any(s in stack for s in _UI)
         tem_api = any(s in stack for s in _API)

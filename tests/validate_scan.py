@@ -61,6 +61,34 @@ with tempfile.TemporaryDirectory() as d:
     if not any('node_modules' in motivo for motivo in desc):
         errors.append(f'descartados() não nomeia o que ignorou: {desc}')
 
+
+# Regressão: num projeto de credenciamento, o padrão `*credential*` engoliu sete
+# specs de requisito. Documento de texto nunca é segredo por nome.
+with tempfile.TemporaryDirectory() as d:
+    raiz = Path(d)
+    (raiz / 'specs').mkdir()
+    for nome in ('credential-categories.md', 'f01_renew-credential.md',
+                 'secrets-da-reuniao.md', 'notas-sobre-credenciais.txt'):
+        (raiz / 'specs' / nome).write_text('conteúdo\n', encoding='utf-8')
+    (raiz / 'credentials.json').write_text('{}', encoding='utf-8')
+    (raiz / 'chave.pem').write_text('-----BEGIN\n', encoding='utf-8')
+
+    caminhos = {e['caminho'] for e in scan.varrer(raiz)}
+    for documento in ('specs/credential-categories.md',
+                      'specs/f01_renew-credential.md',
+                      'specs/secrets-da-reuniao.md',
+                      'specs/notas-sobre-credenciais.txt'):
+        if documento not in caminhos:
+            errors.append(f'MATERIAL PERDIDO: {documento} foi descartado como segredo')
+    for segredo in ('credentials.json', 'chave.pem'):
+        if segredo in caminhos:
+            errors.append(f'SEGREDO VAZADO: {segredo} entrou na varredura')
+
+    motivos = scan.descartados(raiz)
+    if not any('credentials.json' in m for m in motivos):
+        errors.append('o descarte de segredo precisa nomear o arquivo, '
+                      'ou falso positivo fica invisível')
+
 fonte = (RAIZ / 'core' / 'scan.py').read_text(encoding='utf-8')
 for proibida in ('read_text', 'read_bytes'):
     if proibida in fonte:

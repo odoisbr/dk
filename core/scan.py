@@ -19,11 +19,27 @@ IGNORADOS_PADRAO = (
     'target', 'vendor', '.next', '.nuxt', '.gradle', '.idea', '.DS_Store',
 )
 
+# Nomes e extensões de arquivo que GUARDAM segredo — não documentos que FALAM
+# sobre segredo. O padrão anterior era `*credential*` e `*secret*` em qualquer
+# posição, e num projeto de credenciamento ele engoliu sete specs de requisito:
+# `credential-categories.md`, `f01_renew-credential.md` e outros cinco. Sumiram do
+# mapa sem aviso.
+#
+# Heurística de segurança larga demais é pior que nenhuma: ela perde material e
+# não conta. Agora são nomes exatos e extensões, e documento de texto nunca é
+# classificado como segredo por nome.
 SENSIVEIS = (
-    '.env', '.env.*', '*.pem', '*.key', '*.p12', '*.pfx', '*.keystore',
-    'id_rsa', 'id_rsa.*', 'id_ed25519', 'id_ed25519.*',
-    '*credential*', '*secret*', '.netrc', '.npmrc', '.pypirc',
+    '.env', '.env.*', '.netrc', '.npmrc', '.pypirc',
+    '*.pem', '*.key', '*.p12', '*.pfx', '*.keystore', '*.jks',
+    'id_rsa', 'id_rsa.*', 'id_ed25519', 'id_ed25519.*', 'id_dsa', 'id_ecdsa',
+    'credentials', 'credentials.json', 'credentials.yml', 'credentials.yaml',
+    '.credentials', 'secrets.json', 'secrets.yml', 'secrets.yaml', '.secrets',
+    'service-account.json', 'serviceaccount.json',
 )
+
+# Extensões de documento. Um `.md` nunca é cofre de credencial; ele pode até se
+# chamar `secrets.md`, e ainda assim é texto que alguém escreveu para ser lido.
+_DOCUMENTO = ('.md', '.txt', '.rst', '.adoc', '.markdown')
 
 _LIMITE_BYTES = 2_000_000
 
@@ -43,8 +59,8 @@ def ignorado(rel: str, extras=()) -> str:
     for p in partes:
         if p in IGNORADOS_PADRAO:
             return f'diretório ignorado por padrão: {p}'
-    if _casa(nome, SENSIVEIS):
-        return 'arquivo sensível'
+    if not nome.lower().endswith(_DOCUMENTO) and _casa(nome, SENSIVEIS):
+        return f'arquivo sensível: {nome}'
     for padrao in extras:
         alvo = padrao.rstrip('/')
         if padrao.endswith('/') and alvo in partes:

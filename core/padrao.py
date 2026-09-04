@@ -43,9 +43,17 @@ ENTREGAVEIS: Dict[str, tuple] = {
     'handoff': ('2-design', True),
 }
 
-# minúsculas, hífen, sem espaço e sem versão solta no nome
-_CONVENCAO = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*\.[a-z0-9]+$')
-_EXCECOES = {'README.md', 'GUIA.md', 'CHANGELOG.md'}
+# Minúsculas, sem espaço e sem acento. Hífen e sublinhado valem os dois: projeto
+# real usa `f01_renew-credential.md` e `mm02_renewal-and-type-change`, e essa
+# convenção é deliberada — a regra anterior só aceitava hífen e reprovava 50
+# arquivos de um projeto que estava certo.
+_CONVENCAO = re.compile(r'^[a-z0-9]+([-_][a-z0-9]+)*\.[a-z0-9]+$')
+_EXCECOES = {'README.md', 'GUIA.md', 'CHANGELOG.md', 'CLAUDE.md', 'AGENTS.md',
+             'AGENT.md', 'CONTRIBUTING.md', 'LICENSE.md'}
+# `0-apoio/` recebe material que vem de fora — documento do cliente, transcrição,
+# planilha. O nome é de quem mandou, e o padrão declara a pasta como append-only.
+# Cobrar convenção de nome ali é cobrar do cliente.
+_FORA_DA_CONVENCAO = ('0-apoio',)
 
 
 def destino(chave: str) -> str:
@@ -81,6 +89,8 @@ def verificar(raiz: Path) -> List[dict]:
     for p in sorted(raiz.rglob('*.md')):
         rel = p.relative_to(raiz)
         if any(parte.startswith('.') for parte in rel.parts):
+            continue
+        if rel.parts and rel.parts[0] in _FORA_DA_CONVENCAO:
             continue
         if p.name in _EXCECOES:
             continue

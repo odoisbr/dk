@@ -19,6 +19,74 @@ def _item(nome, estado, evidencia, resolve_em, comando) -> Dict:
             'resolve_em': resolve_em, 'comando': comando}
 
 
+def _fechar(itens: List[Dict], raiz: Path) -> Dict:
+    """Acrescenta os itens que não dependem do registro e fecha o resultado."""
+    ja = {i['nome'] for i in itens}
+
+    if 'lacunas' not in ja:
+        lac = lacunas.analisar(raiz)
+        criticas = [a for a in lac
+                    if a['prioridade'] == 'CRITICA' and a['status'] == 'AUSENTE']
+        parciais = [a for a in lac if a['status'] == 'PARCIAL']
+        if criticas:
+            itens.append(_item(
+                'lacunas', 'bloqueio',
+                f'{len(criticas)} lacuna(s) crítica(s) ausente(s): '
+                + ', '.join(a['tema'] for a in criticas),
+                'levantar', 'dk levantar --projeto <raiz> --insumo <arquivo>'))
+        elif parciais:
+            itens.append(_item(
+                'lacunas', 'aviso',
+                f'{len(parciais)} item(ns) do checklist só com menção isolada',
+                'levantar', 'dk levantar --projeto <raiz> --insumo <arquivo>'))
+        else:
+            itens.append(_item('lacunas', 'ok', 'checklist de discovery coberto',
+                               'levantar', 'dk levantar --projeto <raiz>'))
+
+    if 'padrao' not in ja:
+        estrutura = padrao.verificar(raiz)
+        altos = [a for a in estrutura if a['impacto'] == 'alto']
+        if altos:
+            itens.append(_item(
+                'padrao', 'bloqueio',
+                f'{len(altos)} violação(ões) estrutural(is): '
+                + '; '.join(a['evidencia'][:60] for a in altos[:3]),
+                'audit', 'dk audit --projeto <raiz>'))
+        elif estrutura:
+            itens.append(_item(
+                'padrao', 'aviso',
+                f'{len(estrutura)} achado(s) estrutural(is) de impacto menor',
+                'audit', 'dk audit --projeto <raiz>'))
+        else:
+            itens.append(_item('padrao', 'ok',
+                               'estrutura do projeto em conformidade',
+                               'audit', 'dk audit --projeto <raiz>'))
+
+    if 'prototipo' not in ja:
+        proto = prototipo.verificar(raiz)
+        proto_altos = [a for a in proto if a['impacto'] == 'alto']
+        if proto_altos:
+            itens.append(_item(
+                'prototipo', 'bloqueio',
+                f'{len(proto_altos)} violação(ões) de padrão no protótipo: '
+                + '; '.join(f"regra {a['regra']}" for a in proto_altos[:4]),
+                'prototipar', 'dk prototipar --projeto <raiz> --verificar'))
+        elif proto:
+            itens.append(_item(
+                'prototipo', 'aviso',
+                f'{len(proto)} achado(s) de padrão no protótipo',
+                'prototipar', 'dk prototipar --projeto <raiz> --verificar'))
+        else:
+            itens.append(_item('prototipo', 'ok', 'protótipo dentro do padrão',
+                               'prototipar',
+                               'dk prototipar --projeto <raiz> --verificar'))
+
+    bloqueios = [i for i in itens if i['estado'] == 'bloqueio']
+    avisos = [i for i in itens if i['estado'] == 'aviso']
+    return {'pronto': not bloqueios, 'bloqueios': bloqueios,
+            'avisos': avisos, 'itens': itens}
+
+
 def avaliar(raiz: Path) -> Dict:
     raiz = Path(raiz)
     itens = []
@@ -26,17 +94,24 @@ def avaliar(raiz: Path) -> Dict:
     cob = cobertura.matriz(raiz)
     orfas = cob['regras_sem_requisito']
     sem_regra = cob['requisitos_sem_regra']
-    vazio = not cob['totais']['regras'] and not cob['totais']['requisitos']
-    if vazio:
-        # Zero regras e zero requisitos "batem" — e é verdade vacuosa. Um projeto
-        # sem nada registrado não está pronto para handoff; está por começar.
-        # O gate precisa distinguir fechado de vazio, ou aprova o caso pior.
-        itens.append(_item(
-            'cobertura', 'bloqueio',
-            'nenhuma regra e nenhum requisito registrados — projeto vazio não '
-            'está pronto, está por começar',
-            'levantar', 'dk levantar --projeto <raiz> --insumo <arquivo>'))
-    elif orfas or sem_regra:
+
+    # Verdade vacuosa: com zero regras e zero requisitos, "toda regra tem
+    # requisito", "todo requisito está no entregável" e "nenhuma inconsistência"
+    # são todas verdadeiras — e todas enganosas. Um projeto vazio passaria em três
+    # dos seis itens do gate, que é justamente o caso pior.
+    #
+    # Corrigir item a item não bastou: é uma classe de defeito, e vale para todo
+    # item que depende do registro. Vazio bloqueia os três de uma vez, com o mesmo
+    # motivo, e o gate diz que está vazio em vez de dizer que está fechado.
+    if not cob['totais']['regras'] and not cob['totais']['requisitos']:
+        motivo = ('nenhuma regra e nenhum requisito registrados — projeto vazio '
+                  'não está pronto, está por começar')
+        for nome in ('cobertura', 'entregaveis', 'consistencia'):
+            itens.append(_item(nome, 'bloqueio', motivo, 'levantar',
+                               'dk levantar --projeto <raiz> --insumo <arquivo>'))
+        return _fechar(itens, raiz)
+
+    if orfas or sem_regra:
         partes = []
         if orfas:
             partes.append('regra sem requisito: ' + ', '.join(orfas))
@@ -82,66 +157,5 @@ def avaliar(raiz: Path) -> Dict:
                            f'{len(inc)} achado(s), nenhum bloqueante',
                            'entender', 'dk entender --projeto <raiz>'))
 
-    lac = lacunas.analisar(raiz)
-    criticas = [a for a in lac
-                if a['prioridade'] == 'CRITICA' and a['status'] == 'AUSENTE']
-    parciais = [a for a in lac if a['status'] == 'PARCIAL']
-    if criticas:
-        itens.append(_item(
-            'lacunas', 'bloqueio',
-            f'{len(criticas)} lacuna(s) crítica(s) ausente(s): '
-            + ', '.join(a['tema'] for a in criticas),
-            'levantar', 'dk levantar --projeto <raiz> --insumo <arquivo>'))
-    elif parciais:
-        itens.append(_item(
-            'lacunas', 'aviso',
-            f'{len(parciais)} item(ns) do checklist só com menção isolada',
-            'levantar', 'dk levantar --projeto <raiz> --insumo <arquivo>'))
-    else:
-        itens.append(_item('lacunas', 'ok', 'checklist de discovery coberto',
-                           'levantar', 'dk levantar --projeto <raiz>'))
 
-    estrutura = padrao.verificar(raiz)
-    altos = [a for a in estrutura if a['impacto'] == 'alto']
-    if altos:
-        itens.append(_item(
-            'padrao', 'bloqueio',
-            f'{len(altos)} violação(ões) estrutural(is): '
-            + '; '.join(a['evidencia'][:60] for a in altos[:3]),
-            'audit', 'dk audit --projeto <raiz>'))
-    elif estrutura:
-        itens.append(_item(
-            'padrao', 'aviso',
-            f'{len(estrutura)} achado(s) estrutural(is) de impacto menor',
-            'audit', 'dk audit --projeto <raiz>'))
-    else:
-        itens.append(_item('padrao', 'ok',
-                           'estrutura do projeto em conformidade',
-                           'audit', 'dk audit --projeto <raiz>'))
-
-    proto = prototipo.verificar(raiz)
-    proto_altos = [a for a in proto if a['impacto'] == 'alto']
-    if proto_altos:
-        itens.append(_item(
-            'prototipo', 'bloqueio',
-            f'{len(proto_altos)} violação(ões) de padrão no protótipo: '
-            + '; '.join(f"regra {a['regra']}" for a in proto_altos[:4]),
-            'prototipar', 'dk prototipar --projeto <raiz> --verificar'))
-    elif proto:
-        itens.append(_item(
-            'prototipo', 'aviso',
-            f'{len(proto)} achado(s) de padrão no protótipo',
-            'prototipar', 'dk prototipar --projeto <raiz> --verificar'))
-    else:
-        itens.append(_item('prototipo', 'ok', 'protótipo dentro do padrão',
-                           'prototipar',
-                           'dk prototipar --projeto <raiz> --verificar'))
-
-    bloqueios = [i for i in itens if i['estado'] == 'bloqueio']
-    avisos = [i for i in itens if i['estado'] == 'aviso']
-    return {
-        'pronto': not bloqueios,
-        'bloqueios': bloqueios,
-        'avisos': avisos,
-        'itens': itens,
-    }
+    return _fechar(itens, raiz)
