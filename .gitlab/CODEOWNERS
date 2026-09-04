@@ -1,0 +1,53 @@
+# CODEOWNERS — dk
+#
+# Arquivo lido nativamente pelo GitLab para atribuir reviewers obrigatórios.
+# Documentação: https://docs.gitlab.com/ee/user/project/codeowners/
+#
+# Regra atual (governance/OWNERS.md):
+#   Apenas @angelo.pimentel e @cecilia.dib aprovam e mergeiam.
+#   Outros membros podem abrir MR e responder revisões.
+#
+# ATENÇÃO: confirme que @angelo.pimentel e @cecilia.dib são os usernames reais
+# do GitLab da Sea antes do primeiro merge.
+
+############################################################
+# Default — qualquer arquivo do repositório
+############################################################
+
+* @angelo.pimentel @cecilia.dib
+
+############################################################
+# Contrato e invariantes — exigem aprovação dos dois
+############################################################
+
+[Contrato] @angelo.pimentel @cecilia.dib
+/llms.txt
+/llms-full.txt
+/CLAUDE.md
+/governance/
+/.gitlab/
+
+############################################################
+# Núcleo determinístico e validação
+############################################################
+
+[Nucleo] @angelo.pimentel @cecilia.dib
+/core/
+/tests/
+/verificar.py
+/bin/
+
+############################################################
+# Skills e agentes
+############################################################
+
+[Skills] @angelo.pimentel @cecilia.dib
+/skills/
+/agents/
+
+############################################################
+# Documentação
+############################################################
+
+[Docs] @angelo.pimentel @cecilia.dib
+/docs/
