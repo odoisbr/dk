@@ -29,6 +29,10 @@ for item in inventario:
             errors.append(f'{nome}: portão sem etapa reconhecível')
 
 sem_portao = [i for i in inventario if not i['portao']]
+if len(sem_portao) > skills.MAX_PORTAS:
+    errors.append(
+        f'{len(sem_portao)} skills sem portão para no máximo '
+        f'{skills.MAX_PORTAS} portas — porta nova exige decisão explícita')
 custo = sum(len(i['description'].encode('utf-8')) for i in sem_portao)
 if custo > skills.ORCAMENTO_BYTES:
     errors.append(
