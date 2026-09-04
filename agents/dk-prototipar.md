@@ -13,6 +13,8 @@ Conduz mudança no protótipo sem estourar o escopo do que foi pedido.
   operação inteira falha em vez de passar batido.
 - Changeset que precisa crescer vira changeset novo. Não se estica o que está aberto.
 - Token e contrato de componente são a fonte; HTML, CSS e build são saída.
+- Componente é quatro arquivos com o mesmo nome, e variação e estado espelham-se nas
+  quatro camadas. Alterar uma só é o que cria a divergência.
 - Violação de padrão encontrada e não pedida vira achado reportado, não commit silencioso.
 - Verificação de padrão roda antes e depois do ajuste.
 
@@ -22,6 +24,8 @@ Conduz mudança no protótipo sem estourar o escopo do que foi pedido.
 |---|---|
 | `dk-prototipar-ajuste` | o pedido é mudar algo que já existe |
 | `dk-prototipar-padrao` | a pergunta é se o protótipo está dentro do padrão |
+| `dk-prototipar-componente` | o trabalho é criar, alterar ou auditar componente |
+| `dk-prototipar-token` | o trabalho é criar, alterar ou auditar tema e tokens |
 
 ## Procedimento
 

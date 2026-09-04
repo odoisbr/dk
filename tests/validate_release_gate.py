@@ -41,6 +41,9 @@ ITENS = [
     ('escrita no registro canônico não estraga', 'tests/validate_escrita_canonica.py'),
     ('entregáveis de comunicação', 'tests/validate_ciclo_comunicacao.py'),
     ('deck 16:9', 'tests/validate_deck.py'),
+    ('contrato de componente e espelhamento', 'tests/validate_componente.py'),
+    ('tokens DTCG', 'tests/validate_tokens.py'),
+    ('leitor de YAML recusa o que não entende', 'tests/validate_miniyaml.py'),
 ]
 
 errors = []

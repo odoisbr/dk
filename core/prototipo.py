@@ -29,9 +29,26 @@ def _arquivos(base: Path, *sufixos) -> List[Path]:
 
 
 def verificar(raiz: Path) -> List[Dict]:
+    """As regras do protótipo mais as do design system.
+
+    Componente e token entram aqui, e não num módulo próprio: a etapa
+    `prototipar` já é o lugar onde se mexe em componente e em tema. Um diretório
+    `modules/design-system/` acrescentaria estrutura sem acrescentar capacidade —
+    a spec o propunha, e a execução mostrou que a etapa basta."""
+    from core import componente, tokens
     raiz = Path(raiz)
     base = raiz / BASE
     achados = []
+
+    # o design system tem vida própria: é verificado exista ou não protótipo
+    for a in componente.verificar(raiz):
+        achados.append({'regra': 'CMP', 'titulo': a['titulo'],
+                        'evidencia': f"{a['componente']}: {a['evidencia']}",
+                        'impacto': a['impacto']})
+    for a in tokens.verificar(raiz):
+        achados.append({'regra': 'TOK', 'titulo': a['titulo'],
+                        'evidencia': a['evidencia'], 'impacto': a['impacto']})
+
     if not base.is_dir():
         return achados
 
