@@ -7,20 +7,23 @@ Python 3.9 e biblioteca padrão.
 Substitui o `sea-design-kit`. O de-para está em
 [docs/migracao-do-kit.md](docs/migracao-do-kit.md).
 
+Repositório oficial:
+[gitlab.seatecnologia.com.br/design/dk](https://gitlab.seatecnologia.com.br/design/dk).
+
 ## Instalação
 
-```
-/plugin marketplace add /caminho/para/dk
-/plugin install dk@dk
-```
-
-Para instalar a partir deste repositório, clone:
+Clone o repositório:
 
 ```bash
 git clone git@gitlab.seatecnologia.com.br:design/dk.git
 ```
 
-Depois `/plugin marketplace add <caminho do clone>` e `/plugin install dk@dk`.
+Depois, no Claude Code, aponte o marketplace para o clone e instale:
+
+```
+/plugin marketplace add <caminho do clone>
+/plugin install dk@dk
+```
 
 ## As sete etapas
 

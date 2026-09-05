@@ -12,7 +12,17 @@ A divisão de trabalho é explícita em cada achado, no campo `decidido_por`:
     skill   o código marca o candidato e a decisão exige leitura
 
 Fingir determinismo onde não há é pior que não ter a checagem: produz achado
-falso com cara de fato."""
+falso com cara de fato.
+
+Limite lexical, declarado de propósito: `_ACOES`, `_VAGOS` e `_MENSURAVEL` são
+listas fixas em português. Requisito escrito em outro idioma, ou com verbo fora
+da lista, não é reconhecido como ação — e a comparação cai no caminho sem filtro
+de ação, que erra para o lado do falso positivo. Isso é escolha, não descuido: o
+filtro de ação só pesa em par parecido — par de texto idêntico é duplicata com ou
+sem ele —, e todo par parecido sai com `decidido_por: skill`, ou seja, vai para
+leitura humana em vez de virar conclusão. O limite lexical produz candidato a
+mais, nunca conclusão errada. Ampliar a lista é barato e não muda contrato;
+trocá-la por stemmer traria dependência, que o pacote não tem."""
 from __future__ import annotations
 import re
 import unicodedata
@@ -46,7 +56,16 @@ def _normaliza(token: str) -> str:
     Duplicata real aparece assim: "revogar o convênio" e "revogar convênios".
     Sem esta normalização a comparação erra justamente o caso que ela existe
     para pegar. A dobra não precisa ser linguisticamente correta — precisa ser
-    a mesma dos dois lados."""
+    a mesma dos dois lados.
+
+    E não é: "status", "ônibus" e sigla terminada em s perdem o s sem serem
+    plural. Isso vale para toda comparação de similaridade, não só para os
+    achados marcados como candidato. A escolha se sustenta porque o erro é
+    simétrico — os dois lados sofrem a mesma dobra, então palavra não-plural só
+    aproxima de outra palavra que também termina em s. O efeito é candidato a
+    mais em `DUPLICATA`, que sai com `decidido_por: skill` e vai para leitura
+    humana. Regra de plural correta em português exigiria stemmer, e o pacote
+    não tem dependência."""
     dobrado = unicodedata.normalize('NFKD', token)
     dobrado = ''.join(c for c in dobrado if not unicodedata.combining(c))
     if len(dobrado) > 4 and dobrado.endswith('s'):

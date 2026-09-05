@@ -4,23 +4,25 @@
 # Documentação: https://docs.gitlab.com/ee/user/project/codeowners/
 #
 # Regra atual (governance/OWNERS.md):
-#   Apenas @angelo.pimentel e @cecilia.dib aprovam e mergeiam.
+#   Apenas @ahs-pimentel e @cecilia.dib aprovam e mergeiam.
 #   Outros membros podem abrir MR e responder revisões.
 #
-# ATENÇÃO: confirme que @angelo.pimentel e @cecilia.dib são os usernames reais
-# do GitLab da Sea antes do primeiro merge.
+# Usernames conferidos na API do GitLab da Sea antes do primeiro merge:
+# @ahs-pimentel (Angelo Pimentel) e @cecilia.dib (Cecilia). O @angelo.pimentel
+# que constava aqui não existe no servidor — com ele, a regra não atribuiria
+# reviewer nenhum e a aprovação obrigatória valeria zero.
 
 ############################################################
 # Default — qualquer arquivo do repositório
 ############################################################
 
-* @angelo.pimentel @cecilia.dib
+* @ahs-pimentel @cecilia.dib
 
 ############################################################
 # Contrato e invariantes — exigem aprovação dos dois
 ############################################################
 
-[Contrato] @angelo.pimentel @cecilia.dib
+[Contrato] @ahs-pimentel @cecilia.dib
 /llms.txt
 /llms-full.txt
 /CLAUDE.md
@@ -31,7 +33,7 @@
 # Núcleo determinístico e validação
 ############################################################
 
-[Nucleo] @angelo.pimentel @cecilia.dib
+[Nucleo] @ahs-pimentel @cecilia.dib
 /core/
 /tests/
 /verificar.py
@@ -41,7 +43,7 @@
 # Skills e agentes
 ############################################################
 
-[Skills] @angelo.pimentel @cecilia.dib
+[Skills] @ahs-pimentel @cecilia.dib
 /skills/
 /agents/
 
@@ -49,5 +51,5 @@
 # Documentação
 ############################################################
 
-[Docs] @angelo.pimentel @cecilia.dib
+[Docs] @ahs-pimentel @cecilia.dib
 /docs/

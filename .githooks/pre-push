@@ -7,6 +7,13 @@ set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Sem esta guarda, a ausência do interpretador cairia no mesmo ramo de erro da
+# verificação reprovada, e a mensagem culparia o código em vez do ambiente.
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "Push abortado: python3 não encontrado. A verificação do pacote depende dele."
+  exit 1
+fi
+
 echo "Verificando o pacote antes do push..."
 if ! python3 "$RAIZ/verificar.py"; then
   echo
